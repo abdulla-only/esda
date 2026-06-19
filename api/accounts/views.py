@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -5,8 +6,8 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import TelegramAuthSerializer, UserSerializer
-from .services import authenticate_telegram, issue_token_pair
+from .serializers import RegisterSerializer, TelegramAuthSerializer, UserSerializer
+from .services import authenticate_telegram, issue_token_pair, register_user
 from .telegram import TelegramAuthError
 
 
@@ -33,6 +34,24 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
 
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "token"
+
+
+class RegisterView(APIView):
+    """POST /auth/register — create an email/password account and return a JWT pair."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "register"
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = register_user(**serializer.validated_data)
+        return Response(
+            {"user": _user_payload(user), **issue_token_pair(user)},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class TelegramAuthView(APIView):

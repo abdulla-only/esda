@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late final AuthController _controller = AuthController(AuthApi(widget.client));
   final _email = TextEditingController(text: 'demo@esda.app');
   final _password = TextEditingController();
+  bool _register = false;
 
   @override
   void dispose() {
@@ -28,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final ok = await _controller.login(_email.text, _password.text);
+    final ok = _register
+        ? await _controller.register(_email.text, _password.text)
+        : await _controller.login(_email.text, _password.text);
     if (ok && mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -41,7 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in to esda')),
+      appBar: AppBar(
+        title: Text(_register ? 'Create your esda account' : 'Sign in to esda'),
+      ),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) => Padding(
@@ -68,7 +73,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _controller.busy ? null : _submit,
-                  child: Text(_controller.busy ? 'Signing in…' : 'Sign in'),
+                  child: Text(
+                    _controller.busy
+                        ? (_register ? 'Creating…' : 'Signing in…')
+                        : (_register ? 'Create account' : 'Sign in'),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: _controller.busy
+                    ? null
+                    : () => setState(() => _register = !_register),
+                child: Text(
+                  _register
+                      ? 'Already have an account? Sign in'
+                      : 'New here? Create an account',
                 ),
               ),
             ],

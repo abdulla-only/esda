@@ -6,6 +6,10 @@ export const authApi = {
     api
       .post<TelegramAuthResponse>(`${API_PREFIX}/auth/telegram`, { init_data: initData })
       .then((r) => r.data),
+  register: (email: string, password: string) =>
+    api
+      .post<TelegramAuthResponse>(`${API_PREFIX}/auth/register`, { email, password })
+      .then((r) => r.data),
   emailLogin: (email: string, password: string) =>
     api.post<TokenPair>(`${API_PREFIX}/auth/token`, { email, password }).then((r) => r.data),
   me: () => api.get<User>(`${API_PREFIX}/auth/me`).then((r) => r.data),

@@ -126,6 +126,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     # Scoped throttles are applied per public endpoint; see the auth/health views.
     "DEFAULT_THROTTLE_RATES": {
+        "register": "5/min",
         "telegram_auth": "10/min",
         "token": "10/min",
         "health": "120/min",

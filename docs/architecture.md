@@ -22,7 +22,12 @@ This file collects deeper notes per subsystem.
 
 ## Auth
 
-Two ways to obtain a JWT (djangorestframework-simplejwt):
+Three ways to obtain a JWT (djangorestframework-simplejwt):
+
+0. **Register** — `POST /api/v1/auth/register` with `{ "email", "password" }`.
+   `RegisterSerializer` enforces a unique email and Django's password validators;
+   `register_user` (service) creates the account and the view returns a JWT pair
+   (201). Public + throttled (`register` scope).
 
 1. **Telegram** — `POST /api/v1/auth/telegram` with `{ "init_data": "<raw initData>" }`.
    The server (`accounts/telegram.py`) validates the data:

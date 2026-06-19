@@ -99,3 +99,55 @@ class EmailAuthTests(APITestCase):
         res = self.client.get("/api/v1/auth/me")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()["data"]["email"], "a@b.com")
+
+
+class RegisterTests(APITestCase):
+    url = "/api/v1/auth/register"
+
+    def setUp(self):
+        cache.clear()
+
+    def test_register_succeeds_and_returns_tokens(self):
+        res = self.client.post(
+            self.url,
+            {"email": "new@b.com", "password": "str0ngPassw0rd!"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201)
+        body = res.json()
+        self.assertTrue(body["success"])
+        self.assertIn("access", body["data"])
+        self.assertEqual(body["data"]["user"]["email"], "new@b.com")
+        self.assertTrue(User.objects.filter(email="new@b.com").exists())
+
+    def test_can_login_after_register(self):
+        self.client.post(
+            self.url,
+            {"email": "new2@b.com", "password": "str0ngPassw0rd!"},
+            format="json",
+        )
+        res = self.client.post(
+            "/api/v1/auth/token",
+            {"email": "new2@b.com", "password": "str0ngPassw0rd!"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("access", res.json()["data"])
+
+    def test_duplicate_email_rejected(self):
+        User.objects.create_user(email="dup@b.com", password="str0ngPassw0rd!")
+        res = self.client.post(
+            self.url,
+            {"email": "dup@b.com", "password": "str0ngPassw0rd!"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["error"]["code"], "validation_error")
+
+    def test_weak_password_rejected(self):
+        res = self.client.post(
+            self.url, {"email": "weak@b.com", "password": "123"}, format="json"
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(res.json()["success"])
+        self.assertFalse(User.objects.filter(email="weak@b.com").exists())

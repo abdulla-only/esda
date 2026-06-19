@@ -16,10 +16,23 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
+
+/** Pull a human message out of the API error envelope, if present. */
+function serverError(e: unknown): string | null {
+  const err = (e as { response?: { data?: { error?: { message?: string; details?: Record<string, string[]> } } } })
+    ?.response?.data?.error;
+  if (!err) return null;
+  if (err.details) {
+    const first = Object.values(err.details)[0];
+    if (Array.isArray(first) && first.length) return String(first[0]);
+  }
+  return err.message ?? null;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState<boolean>(tokenStore.isAuthed);
@@ -70,6 +83,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           setError("Invalid email or password.");
           throw new Error("login failed");
+        }
+      },
+      async registerWithEmail(email, password) {
+        setError(null);
+        try {
+          const res = await authApi.register(email, password);
+          tokenStore.set(res);
+          setAuthed(true);
+        } catch (e) {
+          setError(serverError(e) ?? "Registration failed.");
+          throw new Error("register failed");
         }
       },
       logout() {

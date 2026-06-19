@@ -10,6 +10,12 @@ def issue_token_pair(user: User) -> dict:
     return {"refresh": str(refresh), "access": str(refresh.access_token)}
 
 
+def register_user(email: str, password: str, first_name: str = "") -> User:
+    return User.objects.create_user(
+        email=email, password=password, first_name=first_name
+    )
+
+
 def authenticate_telegram(init_data: str) -> tuple[User, bool]:
     """Validate initData and return the matching user, creating it on first sight.
 

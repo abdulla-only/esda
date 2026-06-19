@@ -1,9 +1,16 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import MeView, TelegramAuthView, ThrottledTokenObtainPairView
+from .views import (
+    MeView,
+    RegisterView,
+    TelegramAuthView,
+    ThrottledTokenObtainPairView,
+)
 
 urlpatterns = [
+    # Email/password registration.
+    path("register", RegisterView.as_view(), name="auth-register"),
     # Telegram Mini App login.
     path("telegram", TelegramAuthView.as_view(), name="auth-telegram"),
     # Plain-web email/password login (USERNAME_FIELD is email -> field name "email").

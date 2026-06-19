@@ -69,6 +69,7 @@ algorithm (the `fsrs` package) to decide when each card is due.
 | Method | Path                         | Auth   | Description                          |
 |--------|------------------------------|--------|--------------------------------------|
 | GET    | `/api/v1/health`             | public | Liveness + DB check (throttled)      |
+| POST   | `/api/v1/auth/register`      | public | Create email account → JWT pair      |
 | POST   | `/api/v1/auth/telegram`      | public | Validate Telegram initData → JWT     |
 | POST   | `/api/v1/auth/token`         | public | Email + password → JWT pair          |
 | POST   | `/api/v1/auth/token/refresh` | public | Refresh access token                 |

@@ -28,5 +28,24 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  Future<bool> register(String email, String password) async {
+    busy = true;
+    error = null;
+    notifyListeners();
+    try {
+      await _api.register(email.trim(), password);
+      return true;
+    } on RegisterException catch (e) {
+      error = e.message;
+      return false;
+    } catch (_) {
+      error = 'Could not reach the server.';
+      return false;
+    } finally {
+      busy = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() => _api.logout();
 }
