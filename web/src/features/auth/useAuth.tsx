@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { tokenStore } from "../../shared/api/client";
-import { getRawInitData, isTelegramReal } from "../../shared/telegram";
+import { getRawInitData } from "../../shared/telegram";
 import { authApi } from "./api";
 
 interface AuthState {
@@ -49,16 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return;
       }
-      if (isTelegramReal()) {
-        const initData = getRawInitData();
-        if (initData) {
-          try {
-            const res = await authApi.telegram(initData);
-            tokenStore.set(res);
-            if (!cancelled) setAuthed(true);
-          } catch {
-            if (!cancelled) setError("Telegram authentication failed.");
-          }
+      const initData = getRawInitData();
+      if (initData) {
+        try {
+          const res = await authApi.telegram(initData);
+          tokenStore.set(res);
+          if (!cancelled) setAuthed(true);
+        } catch {
+          if (!cancelled) setError("Telegram authentication failed.");
         }
       }
       if (!cancelled) setLoading(false);

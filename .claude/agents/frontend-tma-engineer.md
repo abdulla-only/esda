@@ -19,14 +19,16 @@ Follow `docs/engineering-principles.md` (priority order). Beyond those:
   feature is `features/<f>/` with `api.ts` (data) + a `use*` hook (logic) + a
   component (ui). The app shell is `app/App.tsx`. **Logic goes in hooks, not
   components** — components are presentation only.
-- **One app, two environments.** In a real Telegram client the SDK initializes
-  against the live env; in a browser we install a mock (`shared/telegram.ts`,
-  `mockTelegramEnv`) so the UI renders and we fall back to email login. Never
-  assume Telegram is present.
-- **Telegram SDK is v3** (`@telegram-apps/sdk-react`): use `init`, `isTMA`,
-  `mockTelegramEnv`, and `retrieveRawInitData()` (the raw initData string is what
-  the backend validates). UI comes from `@telegram-apps/telegram-ui` (wrap the
-  app in `<AppRoot>` and import its `dist/styles.css`).
+- **One app, two environments.** `shared/telegram.ts::getRawInitData()` returns
+  the raw initData inside Telegram (via the SDK, falling back to
+  `window.Telegram.WebApp.initData`) and `null` in a plain browser, where the
+  app falls back to email login. Do NOT call the SDK's `init()`/`mockTelegramEnv`
+  — the v3 mock throws `InvalidLaunchParamsError` and is unnecessary for the
+  browser path; keep Telegram access guarded so it never crashes render.
+- **Telegram SDK is v3** (`@telegram-apps/sdk-react`): we use only
+  `retrieveRawInitData()` (synchronous, wrapped in try/catch). UI comes from
+  `@telegram-apps/telegram-ui` (wrap the app in `<AppRoot>` and import its
+  `dist/styles.css`); an `app/ErrorBoundary` is the blank-page safety net.
 - **All API access goes through `shared/api/client.ts`** (axios instance with a
   JWT request interceptor and refresh-on-401). Tokens live in `localStorage` via
   `tokenStore`. Contract types live in `shared/api/types.ts`; per-feature

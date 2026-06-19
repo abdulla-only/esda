@@ -82,7 +82,10 @@ docker-compose.yml · Makefile · .env.example
   not in components/screens.
   - **Web** (`web/src/`): transport + envelope/JWT in `shared/api/client.ts`,
     contract types in `shared/api/types.ts`, Telegram bootstrap in
-    `shared/telegram.ts` (mock in browser, real in TMA). Each feature has
+    `shared/telegram.ts` (`getRawInitData()` via the SDK with a
+    `window.Telegram.WebApp.initData` fallback; null in a plain browser → email
+    login). An `app/ErrorBoundary` guards against blank-page render crashes.
+    Each feature has
     `api.ts` (data) + a `use*` hook (logic) + a component (ui). Verify a build
     with the node:22 image before claiming done.
   - **Mobile** (`lib/`): transport in `features/shared/api_client.dart`, JWT only
