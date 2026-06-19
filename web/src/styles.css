@@ -1,0 +1,150 @@
+:root {
+  --pad: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--pad);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 72px; /* room for the tab bar */
+}
+
+.page {
+  padding: var(--pad);
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.counter {
+  text-align: center;
+  color: #707579;
+  font-size: 14px;
+  margin: 4px 0 12px;
+}
+
+.flashcard {
+  cursor: pointer;
+  min-height: 220px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.front {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.divider {
+  width: 48px;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 6px 0;
+}
+
+.back {
+  font-size: 24px;
+  color: #3390ec;
+  font-weight: 600;
+}
+
+.desc {
+  color: #404040;
+}
+
+.example {
+  font-style: italic;
+  color: #707579;
+}
+
+.pos {
+  margin-top: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #909499;
+}
+
+.tap-hint {
+  color: #909499;
+  font-size: 14px;
+}
+
+.grades {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.grade-btn {
+  border: none;
+  color: #fff;
+  padding: 14px 0;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.grade-btn:disabled {
+  opacity: 0.6;
+}
+
+.error {
+  color: #e64646;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.hint {
+  color: #707579;
+  font-size: 13px;
+  margin-top: 16px;
+}

@@ -1,0 +1,52 @@
+# ---- Environment files (never commit real secrets) ----
+.env
+.env.*
+!.env.example
+
+# ---- Python ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+staticfiles/
+*.sqlite3
+
+# ---- Node / web ----
+node_modules/
+dist/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+
+# ---- Flutter / Dart ----
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/.pub/
+mobile/ios/Pods/
+mobile/android/.gradle/
+mobile/android/local.properties
+*.iml
+
+# ---- Claude Code (commit settings.json + agents + skills; ignore local overrides) ----
+.claude/settings.local.json
+
+# ---- IDE / editor ----
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ---- Docker ----
+*.pid
+
+# TS build info
+*.tsbuildinfo

@@ -1,0 +1,81 @@
+# CLAUDE.md — esda
+
+Spaced-repetition vocabulary app (English & Russian, by CEFR level). Monorepo
+with four clients on one Django backend. Read this before editing; it captures
+the non-obvious decisions that bite you otherwise.
+
+## Stack & layout
+
+```
+api/      Django 5.2 + DRF + PostgreSQL + FSRS (py-fsrs)   — Python 3.12
+web/      Vite + React + TS  (web AND Telegram Mini App)
+bot/      aiogram 3.x
+mobile/   Flutter (skeleton)
+docs/     architecture notes
+docker-compose.yml · Makefile · .env.example
+```
+
+## Running it
+
+- **Docker (all services):** `make dev` (loads `.env.development`). Brings up
+  db, redis, api(:8000), web(:5173), bot. api auto-migrates and (when
+  `AUTO_SEED=1`) seeds on startup.
+- **Host (one service on the machine, db in Docker):** `make install` once, then
+  `make api-local` / `make web-local` / `make bot-local` / `make mobile-local`
+  (load `.env.local`).
+- **DB & utils run in the api container:** `make migrate|makemigrations|superuser|seed|shell|test|lint|format`.
+
+> Two env files on purpose: **`.env.development`** (docker; DB host = `db:5432`)
+> vs **`.env.local`** (host; DB host = `localhost:5433`). Keep both in sync when
+> you add a variable, and add it to `.env.example` too.
+
+## Gotchas (learned the hard way)
+
+- **Postgres is published on host port `5433`, not 5432** — to avoid clashing
+  with a local Postgres. Inside the compose network it's still `5432`.
+- **API is versioned `/api/v1` with NO trailing slashes.** The DRF router uses
+  `DefaultRouter(trailing_slash=False)`. Keep new endpoints slash-less.
+- **One response envelope** (`config.renderers.EnvelopeJSONRenderer`):
+  `{"success":true,"data":…}` or `{"success":false,"error":{code,message,details?}}`.
+  Never return raw/unstructured bodies; raise DRF exceptions for errors. List
+  endpoints are paginated (`PAGE_SIZE=20`); public endpoints are throttled
+  (scoped rates, Redis-backed cache). Business logic lives in `*/services.py`,
+  not in views/serializers. Clients unwrap `data` (web axios interceptor; mobile
+  `body['data']`). **Per the Documentation Sync Rule, any endpoint/field/contract
+  change updates the clients AND the docs in the same change.**
+- **Custom user logs in by email**, not username (`AUTH_USER_MODEL=accounts.User`,
+  `USERNAME_FIELD="email"`, no `username` field). Telegram-only users get a
+  synthetic `tg_<id>@telegram.local` email. Never add a migration that assumes a
+  username field.
+- **FSRS mapping** (`srs/services.py`): py-fsrs `State` has only Learning/Review/
+  Relearning — our `Review.State` adds `NEW=0` for never-graded cards. py-fsrs
+  does **not** track `reps`/`lapses`; we bump those ourselves (`lapses` on rating
+  1=Again). Round-trip a card via `Card.from_dict`/`to_dict`; review datetimes
+  must be tz-aware UTC.
+- **`entrypoint.sh` must stay executable** (`chmod +x`) — the compose bind mount
+  shadows the image's chmod, so the host file's mode is what runs.
+- **Generating migrations without a host venv:** run one-off in the target image,
+  then fix ownership, e.g.
+  `docker compose --env-file .env.development run --rm api python manage.py makemigrations`.
+- **The bot idles** (doesn't crash-loop) until `BOT_TOKEN` is a real BotFather
+  token. Telegram login + Mini App also need an **HTTPS** `MINI_APP_URL`.
+
+## Conventions
+
+- **Python:** ruff (`make lint` / `make format`); settings split under
+  `config/settings/{base,local,development,production}.py`, all config via
+  `django-environ`. Business logic for grading lives in `srs/services.py`, not
+  views.
+- **Web:** API access only through `src/api/client.ts` (axios + JWT interceptor);
+  types in `src/api/types.ts`. Telegram bootstrap in `src/telegram.ts` (mock in
+  browser, real in TMA). Verify a build with the node:22 image before claiming
+  done.
+- **Bot:** handlers on a `Router`; the Mini App button is `WebAppInfo(url=...)`.
+- **Mobile:** all HTTP through `lib/services/api_service.dart`; JWT only in
+  `flutter_secure_storage`; `flutter analyze` must be clean.
+
+## Specialized agents & skills
+
+- Agents: `backend-engineer`, `frontend-tma-engineer`, `bot-engineer`,
+  `mobile-engineer`, `monorepo-reviewer` (see `.claude/agents/`).
+- Skills: `dev-stack`, `smoke-test`, `add-vocabulary` (see `.claude/skills/`).

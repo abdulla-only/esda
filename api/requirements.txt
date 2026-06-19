@@ -1,0 +1,19 @@
+# Core
+Django>=5.1,<6.0
+djangorestframework>=3.15,<4.0
+djangorestframework-simplejwt>=5.3,<6.0
+django-cors-headers>=4.4,<5.0
+django-environ>=0.11,<1.0
+psycopg[binary]>=3.2,<4.0
+
+# Spaced repetition scheduler (official FSRS implementation)
+fsrs>=6.3,<7.0
+
+# Redis client (shared cache backing DRF throttles)
+redis>=5.0,<6.0
+
+# Production server
+gunicorn>=23.0,<24.0
+
+# Dev tooling (lint/format)
+ruff>=0.6,<1.0
