@@ -3,6 +3,10 @@
 Project-scoped configuration that makes Claude Code productive on this monorepo.
 Everything here (except `settings.local.json`) is committed and shared.
 
+All agents and contributors follow
+[`docs/engineering-principles.md`](../docs/engineering-principles.md) — the
+governing rules, in priority order. CLAUDE.md and every agent point to it.
+
 ```
 .claude/
 ├── settings.json        # shared settings (currently: deny reading secret .env files)

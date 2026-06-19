@@ -60,7 +60,6 @@ export function initTelegram(): void {
   try {
     initSDK();
   } catch (err) {
-    // Non-fatal: the SDK may already be initialized or unavailable.
     console.warn("Telegram SDK init skipped:", err);
   }
 }
@@ -70,7 +69,7 @@ export function isTelegramReal(): boolean {
   return telegramReal;
 }
 
-/** Raw initData query string to POST to /api/auth/telegram, or null. */
+/** Raw initData query string to POST to /api/v1/auth/telegram, or null. */
 export function getRawInitData(): string | null {
   try {
     return retrieveRawInitData() ?? null;

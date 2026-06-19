@@ -3,9 +3,9 @@ import { createRoot } from "react-dom/client";
 import { AppRoot } from "@telegram-apps/telegram-ui";
 import "@telegram-apps/telegram-ui/dist/styles.css";
 
-import { App } from "./App";
-import { AuthProvider } from "./auth/AuthContext";
-import { initTelegram } from "./telegram";
+import { App } from "./app/App";
+import { AuthProvider } from "./features/auth/useAuth";
+import { initTelegram } from "./shared/telegram";
 import "./styles.css";
 
 // Must run before rendering so the SDK/UI have an environment to read.

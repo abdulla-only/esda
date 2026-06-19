@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'screens/login_screen.dart';
-import 'screens/study_screen.dart';
-import 'services/api_service.dart';
-import 'services/token_storage.dart';
+import 'features/auth/controller/auth_controller.dart';
+import 'features/auth/data/auth_api.dart';
+import 'features/auth/ui/login_screen.dart';
+import 'features/shared/api_client.dart';
+import 'features/study/ui/study_screen.dart';
 
 void main() {
   runApp(const EsdaApp());
@@ -14,35 +15,39 @@ class EsdaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final api = ApiService();
+    final client = ApiClient();
     return MaterialApp(
       title: 'esda',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3390EC)),
         useMaterial3: true,
       ),
-      home: _Root(api: api),
+      home: _Root(client: client),
     );
   }
 }
 
 /// Picks the first screen based on whether a JWT is already stored.
 class _Root extends StatelessWidget {
-  const _Root({required this.api});
+  const _Root({required this.client});
 
-  final ApiService api;
+  final ApiClient client;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: TokenStorage().isAuthed,
+      future: client.storage.isAuthed,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        return snapshot.data! ? StudyScreen(api: api) : LoginScreen(api: api);
+        if (!snapshot.data!) {
+          return LoginScreen(client: client);
+        }
+        return StudyScreen(
+          client: client,
+          auth: AuthController(AuthApi(client)),
+        );
       },
     );
   }

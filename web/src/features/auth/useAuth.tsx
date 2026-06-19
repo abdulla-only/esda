@@ -7,8 +7,9 @@ import {
   useState,
 } from "react";
 
-import { authApi, tokenStore } from "../api/client";
-import { getRawInitData, isTelegramReal } from "../telegram";
+import { tokenStore } from "../../shared/api/client";
+import { getRawInitData, isTelegramReal } from "../../shared/telegram";
+import { authApi } from "./api";
 
 interface AuthState {
   authed: boolean;

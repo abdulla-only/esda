@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Spinner, Title } from "@telegram-apps/telegram-ui";
 
-import { studyApi } from "../api/client";
-import type { Rating, StudyCard } from "../api/types";
+import type { Rating } from "../../shared/api/types";
+import { useStudySession } from "./useStudySession";
 
 const GRADES: { rating: Rating; label: string; color: string }[] = [
   { rating: 1, label: "Again", color: "#e64646" },
@@ -11,46 +10,9 @@ const GRADES: { rating: Rating; label: string; color: string }[] = [
   { rating: 4, label: "Easy", color: "#3390ec" },
 ];
 
-export function Study({ deck }: { deck?: number }) {
-  const [queue, setQueue] = useState<StudyCard[]>([]);
-  const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [grading, setGrading] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const q = await studyApi.queue(deck, 30);
-      setQueue(q.results);
-      setIndex(0);
-      setRevealed(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [deck]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const current = queue[index];
-
-  async function grade(rating: Rating) {
-    if (!current || grading) return;
-    setGrading(true);
-    try {
-      await studyApi.grade(current.id, rating);
-      if (index + 1 < queue.length) {
-        setIndex(index + 1);
-        setRevealed(false);
-      } else {
-        await load(); // refill from the server (newly-due cards may reappear)
-      }
-    } finally {
-      setGrading(false);
-    }
-  }
+export function StudyScreen({ deck }: { deck?: number }) {
+  const { current, total, index, revealed, loading, grading, reveal, grade, reload } =
+    useStudySession(deck);
 
   if (loading) {
     return (
@@ -67,7 +29,7 @@ export function Study({ deck }: { deck?: number }) {
           🎉 All caught up!
         </Title>
         <p className="hint">No cards due right now.</p>
-        <Button size="m" onClick={load}>
+        <Button size="m" onClick={reload}>
           Refresh
         </Button>
       </div>
@@ -77,20 +39,18 @@ export function Study({ deck }: { deck?: number }) {
   return (
     <div className="page">
       <p className="counter">
-        {index + 1} / {queue.length}
+        {index + 1} / {total}
         {current.review.is_new ? " · new" : ""}
       </p>
 
-      <Card className="flashcard" onClick={() => setRevealed(true)}>
+      <Card className="flashcard" onClick={reveal}>
         <div className="card-body">
           <div className="front">{current.front}</div>
           {revealed ? (
             <>
               <div className="divider" />
               <div className="back">{current.back}</div>
-              {current.description && (
-                <div className="desc">{current.description}</div>
-              )}
+              {current.description && <div className="desc">{current.description}</div>}
               {current.example && <div className="example">“{current.example}”</div>}
               <div className="pos">{current.part_of_speech}</div>
             </>
@@ -115,7 +75,7 @@ export function Study({ deck }: { deck?: number }) {
           ))}
         </div>
       ) : (
-        <Button size="l" stretched onClick={() => setRevealed(true)}>
+        <Button size="l" stretched onClick={reveal}>
           Reveal
         </Button>
       )}

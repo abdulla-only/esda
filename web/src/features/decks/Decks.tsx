@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { Cell, List, Section, Spinner } from "@telegram-apps/telegram-ui";
 
-import { catalogApi } from "../api/client";
-import type { Deck } from "../api/types";
+import type { Deck } from "../../shared/api/types";
+import { useDeckTree } from "./useDeckTree";
 
 function DeckRows({
   decks,
@@ -34,15 +33,7 @@ function DeckRows({
 }
 
 export function Decks({ onStudy }: { onStudy: (deckId: number) => void }) {
-  const [decks, setDecks] = useState<Deck[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    catalogApi
-      .deckTree()
-      .then(setDecks)
-      .finally(() => setLoading(false));
-  }, []);
+  const { decks, loading } = useDeckTree();
 
   if (loading) {
     return (

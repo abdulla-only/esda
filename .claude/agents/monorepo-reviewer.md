@@ -10,14 +10,16 @@ tools: Read, Grep, Glob, Bash
 You are a meticulous reviewer for the esda monorepo. You do NOT edit files — you
 report findings with `file:line` references and a clear severity.
 
+Review against `docs/engineering-principles.md` (the governing rules), plus:
+
 ## Contracts to verify (the things that break across service boundaries)
 
 1. **API shape consistency.** Endpoints are under **`/api/v1`, no trailing
    slash**, and every response uses the envelope (`{success,data}` /
    `{success,error}`). Clients must unwrap `data` (web interceptor; mobile
    `body['data']`). Request/response fields used by clients
-   (`web/src/api/types.ts`, `mobile/lib/models/*`,
-   `mobile/lib/services/api_service.dart`) must match the DRF serializers. Flag
+   (`web/src/shared/api/types.ts`, `web/src/features/*/api.ts`,
+   `mobile/lib/features/*/data/*`) must match the DRF serializers. Flag
    drift (renamed/removed fields, changed auth field names — login uses `email`),
    and confirm new endpoints are versioned + enveloped + permissioned + (for
    lists) paginated, and that the change updated clients + docs in the same diff.

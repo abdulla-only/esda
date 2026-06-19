@@ -1,25 +1,18 @@
-// API client with a JWT auth interceptor.
-//
-// - Requests get an `Authorization: Bearer <access>` header from localStorage.
-// - Successful responses are unwrapped from the API envelope ({success,data}).
-// - On a 401 we try once to refresh the access token, then replay the request.
+// Shared HTTP transport: one axios instance with the JWT auth interceptor and
+// the response-envelope unwrap. Feature data layers (features/*/api.ts) build on
+// this; they never create their own axios instance.
 import axios, {
   AxiosError,
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
 
-import type {
-  Deck,
-  StudyQueue,
-  TelegramAuthResponse,
-  TokenPair,
-  User,
-} from "./types";
+import type { TokenPair } from "./types";
+
+export const API_PREFIX = "/api/v1";
 
 const ACCESS_KEY = "esda.access";
 const REFRESH_KEY = "esda.refresh";
-const API = "/api/v1";
 
 export const tokenStore = {
   get access() {
@@ -62,7 +55,7 @@ async function refreshAccess(): Promise<string | null> {
   const refresh = tokenStore.refresh;
   if (!refresh) return null;
   try {
-    const { data } = await axios.post(`${baseURL}${API}/auth/token/refresh`, {
+    const { data } = await axios.post(`${baseURL}${API_PREFIX}/auth/token/refresh`, {
       refresh,
     });
     const access = data.data.access as string; // envelope: {success,data:{access}}
@@ -100,26 +93,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
-
-export const authApi = {
-  telegram: (initData: string) =>
-    api
-      .post<TelegramAuthResponse>(`${API}/auth/telegram`, { init_data: initData })
-      .then((r) => r.data),
-  emailLogin: (email: string, password: string) =>
-    api.post<TokenPair>(`${API}/auth/token`, { email, password }).then((r) => r.data),
-  me: () => api.get<User>(`${API}/auth/me`).then((r) => r.data),
-};
-
-export const catalogApi = {
-  deckTree: () => api.get<Deck[]>(`${API}/decks/tree`).then((r) => r.data),
-};
-
-export const studyApi = {
-  queue: (deck?: number, limit = 20) =>
-    api
-      .get<StudyQueue>(`${API}/study/queue`, { params: { deck, limit } })
-      .then((r) => r.data),
-  grade: (card: number, rating: number) =>
-    api.post(`${API}/study/grade`, { card, rating }).then((r) => r.data),
-};

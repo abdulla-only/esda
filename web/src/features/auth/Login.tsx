@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Button, Input, Section, Title } from "@telegram-apps/telegram-ui";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "./useAuth";
 
 export function Login() {
   const { loginWithEmail, error } = useAuth();

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../models/study_card.dart';
-import '../services/api_service.dart';
-import 'login_screen.dart';
+import '../../auth/controller/auth_controller.dart';
+import '../../auth/ui/login_screen.dart';
+import '../../shared/api_client.dart';
+import '../controller/study_controller.dart';
+import '../data/study_api.dart';
 
 const _grades = [
   (rating: 1, label: 'Again', color: Color(0xFFE64646)),
@@ -12,72 +14,35 @@ const _grades = [
 ];
 
 class StudyScreen extends StatefulWidget {
-  const StudyScreen({super.key, required this.api});
+  const StudyScreen({super.key, required this.client, required this.auth});
 
-  final ApiService api;
+  final ApiClient client;
+  final AuthController auth;
 
   @override
   State<StudyScreen> createState() => _StudyScreenState();
 }
 
 class _StudyScreenState extends State<StudyScreen> {
-  List<StudyCard> _queue = [];
-  int _index = 0;
-  bool _revealed = false;
-  bool _loading = true;
-  bool _grading = false;
-  String? _error;
+  late final StudyController _controller = StudyController(StudyApi(widget.client));
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _controller.load();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final cards = await widget.api.studyQueue(limit: 30);
-      setState(() {
-        _queue = cards;
-        _index = 0;
-        _revealed = false;
-      });
-    } catch (e) {
-      setState(() => _error = '$e');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _grade(int rating) async {
-    if (_grading || _index >= _queue.length) return;
-    setState(() => _grading = true);
-    try {
-      await widget.api.grade(_queue[_index].id, rating);
-      if (_index + 1 < _queue.length) {
-        setState(() {
-          _index++;
-          _revealed = false;
-        });
-      } else {
-        await _load();
-      }
-    } catch (e) {
-      setState(() => _error = '$e');
-    } finally {
-      if (mounted) setState(() => _grading = false);
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _logout() async {
-    await widget.api.logout();
+    await widget.auth.logout();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => LoginScreen(api: widget.api)),
+      MaterialPageRoute(builder: (_) => LoginScreen(client: widget.client)),
     );
   }
 
@@ -86,56 +51,58 @@ class _StudyScreenState extends State<StudyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('esda'),
-        actions: [
-          IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),
-        ],
+        actions: [IconButton(onPressed: _logout, icon: const Icon(Icons.logout))],
       ),
-      body: _buildBody(),
+      body: ListenableBuilder(listenable: _controller, builder: (context, _) => _body()),
     );
   }
 
-  Widget _buildBody() {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) {
+  Widget _body() {
+    if (_controller.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_controller.error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(_error!, textAlign: TextAlign.center),
+              child: Text(_controller.error!, textAlign: TextAlign.center),
             ),
-            FilledButton(onPressed: _load, child: const Text('Retry')),
+            FilledButton(onPressed: _controller.load, child: const Text('Retry')),
           ],
         ),
       );
     }
-    if (_index >= _queue.length) {
+
+    final card = _controller.current;
+    if (card == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('🎉 All caught up!', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 12),
-            FilledButton(onPressed: _load, child: const Text('Refresh')),
+            FilledButton(onPressed: _controller.load, child: const Text('Refresh')),
           ],
         ),
       );
     }
 
-    final card = _queue[_index];
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Text(
-            '${_index + 1} / ${_queue.length}${card.isNew ? ' · new' : ''}',
+            '${_controller.index + 1} / ${_controller.queue.length}'
+            '${card.isNew ? ' · new' : ''}',
             style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _revealed = true),
+              onTap: _controller.reveal,
               child: Card(
                 child: Center(
                   child: Padding(
@@ -151,7 +118,7 @@ class _StudyScreenState extends State<StudyScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        if (_revealed) ...[
+                        if (_controller.revealed) ...[
                           const Divider(height: 32),
                           Text(
                             card.back,
@@ -188,7 +155,7 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          if (_revealed)
+          if (_controller.revealed)
             Row(
               children: [
                 for (final g in _grades)
@@ -197,7 +164,7 @@ class _StudyScreenState extends State<StudyScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: FilledButton(
                         style: FilledButton.styleFrom(backgroundColor: g.color),
-                        onPressed: _grading ? null : () => _grade(g.rating),
+                        onPressed: _controller.grading ? null : () => _controller.grade(g.rating),
                         child: Text(g.label),
                       ),
                     ),
@@ -208,7 +175,7 @@ class _StudyScreenState extends State<StudyScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => setState(() => _revealed = true),
+                onPressed: _controller.reveal,
                 child: const Text('Reveal'),
               ),
             ),

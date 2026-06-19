@@ -4,6 +4,16 @@ Spaced-repetition vocabulary app (English & Russian, by CEFR level). Monorepo
 with four clients on one Django backend. Read this before editing; it captures
 the non-obvious decisions that bite you otherwise.
 
+## Engineering principles (read first)
+
+All work follows **[docs/engineering-principles.md](docs/engineering-principles.md)**
+— the governing rules, in priority order. In short: consistency > KISS > YAGNI >
+DRY > SRP; one API envelope and one auth flow; business logic only in
+`*/services.py`; security-first (explicit permissions, throttled public
+endpoints, server-side `initData`); tests for every behavioral change; terse
+one-line "why" comments only. **Documentation Sync Rule:** any endpoint/field/
+contract change updates the clients AND the docs in the same change.
+
 ## Stack & layout
 
 ```
@@ -66,13 +76,19 @@ docker-compose.yml · Makefile · .env.example
   `config/settings/{base,local,development,production}.py`, all config via
   `django-environ`. Business logic for grading lives in `srs/services.py`, not
   views.
-- **Web:** API access only through `src/api/client.ts` (axios + JWT interceptor);
-  types in `src/api/types.ts`. Telegram bootstrap in `src/telegram.ts` (mock in
-  browser, real in TMA). Verify a build with the node:22 image before claiming
-  done.
+- **Web & mobile are feature-first** (`features/<feature>/` with data + logic +
+  ui per feature; cross-cutting transport in `shared/`). UI is presentation only
+  — logic lives in **hooks** (web) and **ChangeNotifier controllers** (mobile),
+  not in components/screens.
+  - **Web** (`web/src/`): transport + envelope/JWT in `shared/api/client.ts`,
+    contract types in `shared/api/types.ts`, Telegram bootstrap in
+    `shared/telegram.ts` (mock in browser, real in TMA). Each feature has
+    `api.ts` (data) + a `use*` hook (logic) + a component (ui). Verify a build
+    with the node:22 image before claiming done.
+  - **Mobile** (`lib/`): transport in `features/shared/api_client.dart`, JWT only
+    in `features/shared/token_storage.dart`. Each feature has `data/`,
+    `controller/`, `ui/`. `flutter analyze` must be clean.
 - **Bot:** handlers on a `Router`; the Mini App button is `WebAppInfo(url=...)`.
-- **Mobile:** all HTTP through `lib/services/api_service.dart`; JWT only in
-  `flutter_secure_storage`; `flutter analyze` must be clean.
 
 ## Specialized agents & skills
 

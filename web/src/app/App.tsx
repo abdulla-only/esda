@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Button, Spinner, Tabbar } from "@telegram-apps/telegram-ui";
 
-import { useAuth } from "./auth/AuthContext";
-import { Decks } from "./pages/Decks";
-import { Login } from "./pages/Login";
-import { Study } from "./pages/Study";
+import { useAuth } from "../features/auth/useAuth";
+import { Login } from "../features/auth/Login";
+import { Decks } from "../features/decks/Decks";
+import { StudyScreen } from "../features/study/StudyScreen";
 
 type Tab = "study" | "decks";
 
@@ -36,7 +36,7 @@ export function App() {
 
       <main className="content">
         {tab === "study" ? (
-          <Study deck={deckFilter} />
+          <StudyScreen deck={deckFilter} />
         ) : (
           <Decks
             onStudy={(deckId) => {
@@ -58,11 +58,7 @@ export function App() {
         >
           📚
         </Tabbar.Item>
-        <Tabbar.Item
-          text="Decks"
-          selected={tab === "decks"}
-          onClick={() => setTab("decks")}
-        >
+        <Tabbar.Item text="Decks" selected={tab === "decks"} onClick={() => setTab("decks")}>
           🗂️
         </Tabbar.Item>
       </Tabbar>

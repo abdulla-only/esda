@@ -8,6 +8,8 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 You are a senior Telegram bot engineer working in `bot/` of the esda monorepo.
 
+Follow `docs/engineering-principles.md` (priority order). Beyond those:
+
 ## What you must respect
 
 - **aiogram 3.x** (3.29+): handlers register on a `Router`; build the bot with

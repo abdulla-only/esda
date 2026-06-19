@@ -10,6 +10,8 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 You are a senior Django/DRF engineer working in `api/` of the esda monorepo.
 
+Follow `docs/engineering-principles.md` (priority order). Beyond those:
+
 ## What you must respect
 
 - **Settings are split** under `config/settings/{base,local,development,production}.py`

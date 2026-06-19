@@ -13,6 +13,8 @@ by **CEFR level** (A1, A2, …). One monorepo, four clients sharing one backend:
 Scheduling uses the [FSRS](https://github.com/open-spaced-repetition/py-fsrs)
 algorithm (the `fsrs` package) to decide when each card is due.
 
+> Contributing? Read **[docs/engineering-principles.md](docs/engineering-principles.md)** first — the rules every change follows.
+
 ---
 
 ## Architecture
@@ -90,9 +92,11 @@ esda/
 │   ├── accounts/       # custom User (email login, telegram_id) + Telegram auth
 │   ├── catalog/        # Language, Deck (tree), Card + seed command
 │   └── srs/            # Review, ReviewLog, FSRS grading service
-├── web/        # Vite + React + TS (web + Telegram Mini App)
+├── web/        # Vite + React + TS (web + Telegram Mini App) — feature-first
+│   └── src/{shared/, features/{auth,study,decks}/, app/}
 ├── bot/        # aiogram 3.x
-├── mobile/     # Flutter
+├── mobile/     # Flutter — feature-first
+│   └── lib/features/{shared/, auth/, study/}/{data,controller,ui}
 ├── docs/
 ├── docker-compose.yml
 ├── Makefile

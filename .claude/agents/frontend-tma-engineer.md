@@ -10,19 +10,27 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 You are a senior frontend engineer working in `web/` of the esda monorepo.
 
+Follow `docs/engineering-principles.md` (priority order). Beyond those:
+
 ## What you must respect
 
+- **Feature-first layout** (`src/`): cross-cutting in `shared/`
+  (`shared/api/client.ts`, `shared/api/types.ts`, `shared/telegram.ts`); each
+  feature is `features/<f>/` with `api.ts` (data) + a `use*` hook (logic) + a
+  component (ui). The app shell is `app/App.tsx`. **Logic goes in hooks, not
+  components** — components are presentation only.
 - **One app, two environments.** In a real Telegram client the SDK initializes
-  against the live env; in a browser we install a mock (`src/telegram.ts`,
+  against the live env; in a browser we install a mock (`shared/telegram.ts`,
   `mockTelegramEnv`) so the UI renders and we fall back to email login. Never
   assume Telegram is present.
 - **Telegram SDK is v3** (`@telegram-apps/sdk-react`): use `init`, `isTMA`,
   `mockTelegramEnv`, and `retrieveRawInitData()` (the raw initData string is what
   the backend validates). UI comes from `@telegram-apps/telegram-ui` (wrap the
   app in `<AppRoot>` and import its `dist/styles.css`).
-- **All API access goes through `src/api/client.ts`** (axios instance with a JWT
-  request interceptor and refresh-on-401). Tokens live in `localStorage` via
-  `tokenStore`. Types live in `src/api/types.ts`. The API base is
+- **All API access goes through `shared/api/client.ts`** (axios instance with a
+  JWT request interceptor and refresh-on-401). Tokens live in `localStorage` via
+  `tokenStore`. Contract types live in `shared/api/types.ts`; per-feature
+  endpoint helpers in `features/<f>/api.ts`. The API base is
   `import.meta.env.VITE_API_URL`.
 - **API is versioned `/api/v1`, no trailing slashes.** Responses are enveloped
   (`{success,data}`); the axios success interceptor already unwraps to `data`, so
