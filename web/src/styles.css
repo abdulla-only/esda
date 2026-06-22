@@ -774,11 +774,8 @@ button {
   transform: rotate(180deg);
 }
 .sel__menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 60;
+  position: fixed;
+  z-index: 1050;
   display: flex;
   flex-direction: column;
   gap: 2px;
