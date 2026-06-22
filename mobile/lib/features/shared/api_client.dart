@@ -81,4 +81,17 @@ class ApiClient {
       _data(await _send(
         (h) => _http.post(_uri(path), headers: h, body: jsonEncode(body)),
       ));
+
+  Future<dynamic> patchData(String path, Map<String, dynamic> body) async =>
+      _data(await _send(
+        (h) => _http.patch(_uri(path), headers: h, body: jsonEncode(body)),
+      ));
+
+  /// Authenticated DELETE. Returns void on 2xx (204 has no body), throws otherwise.
+  Future<void> deleteData(String path) async {
+    final res = await _send((h) => _http.delete(_uri(path), headers: h));
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw ApiException(res.statusCode, res.body);
+    }
+  }
 }

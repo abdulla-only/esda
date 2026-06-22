@@ -2,8 +2,9 @@
 name: mobile-engineer
 description: >-
   Flutter specialist for mobile/. Use PROACTIVELY for Dart/Flutter screens, the
-  API service, secure JWT storage, or pubspec changes. This is a working
-  skeleton — keep it clean and analyzable, not necessarily feature-complete.
+  API service, secure JWT storage, or pubspec changes. The app is at parity with
+  web (auth, decks/cards CRUD, study, theme) — keep it clean and `flutter
+  analyze`-clean.
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---
 

@@ -8,7 +8,7 @@ by **CEFR level** (A1, A2, …). One monorepo, four clients sharing one backend:
 | `api/`      | Django 5 + DRF + PostgreSQL + **FSRS**  | REST API, auth, scheduling                  |
 | `web/`      | Vite + React + TypeScript               | Web app **and** Telegram Mini App           |
 | `bot/`      | aiogram 3.x                             | Telegram bot (launches the Mini App)        |
-| `mobile/`   | Flutter                                 | Mobile app (skeleton)                       |
+| `mobile/`   | Flutter                                 | Mobile app (auth, decks/cards CRUD, study)  |
 
 Scheduling uses the [FSRS](https://github.com/open-spaced-repetition/py-fsrs)
 algorithm (the `fsrs` package) to decide when each card is due.
@@ -97,10 +97,10 @@ esda/
 │   ├── catalog/        # Language, Deck (tree), Card + seed command
 │   └── srs/            # Review, ReviewLog, FSRS grading service
 ├── web/        # Vite + React + TS (web + Telegram Mini App) — feature-first
-│   └── src/{shared/, features/{auth,study,decks}/, app/}
+│   └── src/{shared/, features/{auth,study,mydecks}/, app/}
 ├── bot/        # aiogram 3.x
 ├── mobile/     # Flutter — feature-first
-│   └── lib/features/{shared/, auth/, study/}/{data,controller,ui}
+│   └── lib/features/{shared/, home/, auth/, decks/, study/}/{data,controller,ui}
 ├── docs/
 ├── docker-compose.yml
 ├── Makefile

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../home/ui/home_screen.dart';
 import '../../shared/api_client.dart';
-import '../../study/ui/study_screen.dart';
+import '../../shared/theme.dart';
 import '../controller/auth_controller.dart';
 import '../data/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.client});
+  const LoginScreen({super.key, required this.client, required this.theme});
 
   final ApiClient client;
+  final ThemeController theme;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -35,7 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (ok && mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => StudyScreen(client: widget.client, auth: _controller),
+          builder: (_) =>
+              HomeScreen(client: widget.client, theme: widget.theme),
         ),
       );
     }

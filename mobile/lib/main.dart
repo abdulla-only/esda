@@ -1,37 +1,44 @@
 import 'package:flutter/material.dart';
 
-import 'features/auth/controller/auth_controller.dart';
-import 'features/auth/data/auth_api.dart';
 import 'features/auth/ui/login_screen.dart';
+import 'features/home/ui/home_screen.dart';
 import 'features/shared/api_client.dart';
-import 'features/study/ui/study_screen.dart';
+import 'features/shared/theme.dart';
 
-void main() {
-  runApp(const EsdaApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final theme = ThemeController();
+  await theme.load(); // restore the persisted theme before first frame
+  runApp(EsdaApp(theme: theme));
 }
 
 class EsdaApp extends StatelessWidget {
-  const EsdaApp({super.key});
+  const EsdaApp({super.key, required this.theme});
+
+  final ThemeController theme;
 
   @override
   Widget build(BuildContext context) {
     final client = ApiClient();
-    return MaterialApp(
-      title: 'esda',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3390EC)),
-        useMaterial3: true,
+    return ListenableBuilder(
+      listenable: theme,
+      builder: (context, _) => MaterialApp(
+        title: 'esda',
+        theme: esdaLightTheme,
+        darkTheme: esdaDarkTheme,
+        themeMode: theme.mode,
+        home: _Root(client: client, theme: theme),
       ),
-      home: _Root(client: client),
     );
   }
 }
 
 /// Picks the first screen based on whether a JWT is already stored.
 class _Root extends StatelessWidget {
-  const _Root({required this.client});
+  const _Root({required this.client, required this.theme});
 
   final ApiClient client;
+  final ThemeController theme;
 
   @override
   Widget build(BuildContext context) {
@@ -39,15 +46,14 @@ class _Root extends StatelessWidget {
       future: client.storage.isAuthed,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (!snapshot.data!) {
-          return LoginScreen(client: client);
+          return LoginScreen(client: client, theme: theme);
         }
-        return StudyScreen(
-          client: client,
-          auth: AuthController(AuthApi(client)),
-        );
+        return HomeScreen(client: client, theme: theme);
       },
     );
   }

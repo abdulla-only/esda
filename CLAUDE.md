@@ -20,7 +20,7 @@ contract change updates the clients AND the docs in the same change.
 api/      Django 5.2 + DRF + PostgreSQL + FSRS (py-fsrs)   — Python 3.12
 web/      Vite + React + TS  (web AND Telegram Mini App)
 bot/      aiogram 3.x
-mobile/   Flutter (skeleton)
+mobile/   Flutter (parity: auth, decks/cards CRUD, study, theme)
 docs/     architecture notes
 docker-compose.yml · Makefile · .env.example
 ```

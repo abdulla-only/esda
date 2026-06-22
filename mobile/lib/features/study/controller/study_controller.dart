@@ -16,14 +16,17 @@ class StudyController extends ChangeNotifier {
   bool grading = false;
   String? error;
 
+  int? _deck;
+
   StudyCard? get current => index < queue.length ? queue[index] : null;
 
-  Future<void> load() async {
+  Future<void> load({int? deck}) async {
+    _deck = deck;
     loading = true;
     error = null;
     notifyListeners();
     try {
-      queue = await _api.queue(limit: 30);
+      queue = await _api.queue(deck: deck, limit: 30);
       index = 0;
       revealed = false;
     } catch (e) {
@@ -50,7 +53,7 @@ class StudyController extends ChangeNotifier {
         index++;
         revealed = false;
       } else {
-        await load();
+        await load(deck: _deck);
       }
     } catch (e) {
       error = '$e';

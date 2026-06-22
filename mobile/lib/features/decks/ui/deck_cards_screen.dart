@@ -1,0 +1,181 @@
+import 'package:flutter/material.dart';
+
+import '../../shared/api_client.dart';
+import '../../study/ui/study_screen.dart';
+import '../controller/deck_cards_controller.dart';
+import '../data/card.dart';
+import '../data/card_api.dart';
+import '../data/deck.dart';
+import 'card_form.dart';
+
+/// Lists a deck's cards with add/edit/delete and a "Study this deck" action.
+class DeckCardsScreen extends StatefulWidget {
+  const DeckCardsScreen({super.key, required this.client, required this.deck});
+
+  final ApiClient client;
+  final Deck deck;
+
+  @override
+  State<DeckCardsScreen> createState() => _DeckCardsScreenState();
+}
+
+class _DeckCardsScreenState extends State<DeckCardsScreen> {
+  late final DeckCardsController _controller =
+      DeckCardsController(CardApi(widget.client), widget.deck.id);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.load();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _add() async {
+    final result = await showCardForm(context);
+    if (result != null) {
+      await _controller.create(
+        front: result.front,
+        back: result.back,
+        partOfSpeech: result.partOfSpeech,
+        example: result.example,
+        description: result.description,
+      );
+    }
+  }
+
+  Future<void> _edit(DeckCard card) async {
+    final result = await showCardForm(context, card: card);
+    if (result != null) {
+      await _controller.update(
+        card.id,
+        front: result.front,
+        back: result.back,
+        partOfSpeech: result.partOfSpeech,
+        example: result.example,
+        description: result.description,
+      );
+    }
+  }
+
+  Future<void> _delete(DeckCard card) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete card?'),
+        content: Text('Delete "${card.front}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) await _controller.delete(card.id);
+  }
+
+  void _study() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          client: widget.client,
+          deckId: widget.deck.id,
+          deckName: widget.deck.name,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.deck.name),
+        actions: [
+          IconButton(
+            onPressed: _study,
+            icon: const Icon(Icons.play_arrow),
+            tooltip: 'Study this deck',
+          ),
+        ],
+      ),
+      floatingActionButton: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) => FloatingActionButton.extended(
+          onPressed: _controller.busy ? null : _add,
+          icon: const Icon(Icons.add),
+          label: const Text('Add card'),
+        ),
+      ),
+      body: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) => _body(),
+      ),
+    );
+  }
+
+  Widget _body() {
+    if (_controller.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_controller.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(_controller.error!, textAlign: TextAlign.center),
+            ),
+            FilledButton(
+              onPressed: _controller.load,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_controller.cards.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No cards yet. Add one to start studying.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _controller.load,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 88),
+        itemCount: _controller.cards.length,
+        itemBuilder: (context, i) {
+          final card = _controller.cards[i];
+          return ListTile(
+            title: Text('${card.front}  →  ${card.back}'),
+            subtitle: Text(card.partOfSpeech),
+            onTap: () => _edit(card),
+            trailing: PopupMenuButton<String>(
+              onSelected: (v) => v == 'edit' ? _edit(card) : _delete(card),
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
