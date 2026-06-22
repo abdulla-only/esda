@@ -40,6 +40,17 @@ export type PartOfSpeech =
   | "phrase"
   | "other";
 
+export interface Card {
+  id: number;
+  deck: number;
+  front: string;
+  back: string;
+  description: string;
+  example: string;
+  part_of_speech: PartOfSpeech;
+  order: number;
+}
+
 export interface ReviewState {
   is_new: boolean;
   state: number;

@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useAuth } from "../features/auth/useAuth";
 import { Login } from "../features/auth/Login";
 import { Decks } from "../features/decks/Decks";
+import { MyDecks } from "../features/mydecks/MyDecks";
 import { StudyScreen } from "../features/study/StudyScreen";
 
-type Tab = "study" | "decks";
+type Tab = "study" | "decks" | "mydecks";
 
 export function App() {
   const { authed, loading, logout } = useAuth();
@@ -51,6 +52,13 @@ export function App() {
             <LayersGlyph size={20} />
             Decks
           </button>
+          <button
+            className={`navitem ${tab === "mydecks" ? "active" : ""}`}
+            onClick={() => setTab("mydecks")}
+          >
+            <DeckEditGlyph size={20} />
+            My decks
+          </button>
         </nav>
         <button className="navitem navitem--muted" onClick={logout}>
           <LogoutGlyph />
@@ -74,6 +82,8 @@ export function App() {
       <main className="content">
         {tab === "study" ? (
           <StudyScreen deck={deckFilter} />
+        ) : tab === "mydecks" ? (
+          <MyDecks />
         ) : (
           <Decks
             onStudy={(deckId) => {
@@ -96,6 +106,13 @@ export function App() {
         >
           <LayersGlyph size={18} />
           Decks
+        </button>
+        <button
+          className={`tab ${tab === "mydecks" ? "active" : ""}`}
+          onClick={() => setTab("mydecks")}
+        >
+          <DeckEditGlyph size={18} />
+          My decks
         </button>
       </nav>
     </div>
@@ -122,6 +139,18 @@ function LayersGlyph({ size = 18 }: { size?: number }) {
         strokeLinejoin="round"
         opacity="0.5"
         fill="none"
+      />
+    </svg>
+  );
+}
+
+function DeckEditGlyph({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="4" width="14" height="17" rx="3" fill="currentColor" opacity="0.4" />
+      <path
+        d="M17.5 11.5l3 3-5 5H12v-3l5.5-5z"
+        fill="currentColor"
       />
     </svg>
   );

@@ -68,15 +68,72 @@ class CardListTests(CatalogTestBase):
         self.assertEqual(body["data"]["count"], 1)
 
 
-class CardWritePermissionTests(CatalogTestBase):
-    payload = {"deck": None, "front": "new", "back": "новый", "order": 9}
-
-    def test_normal_user_cannot_create(self):
+class DeckOwnershipTests(CatalogTestBase):
+    def test_create_deck_sets_owner(self):
         self.client.force_authenticate(self.user)
-        res = self.client.post("/api/v1/cards", {**self.payload, "deck": self.a1.id}, format="json")
+        res = self.client.post(
+            "/api/v1/decks", {"language": self.lang.id, "name": "My English"}, format="json"
+        )
+        self.assertEqual(res.status_code, 201)
+        data = res.json()["data"]
+        self.assertEqual(data["owner"], self.user.id)
+        self.assertTrue(data["slug"])
+        mine = self.client.get("/api/v1/decks?owner=me").json()["data"]["results"]
+        self.assertEqual([d["name"] for d in mine], ["My English"])
+
+    def test_cannot_edit_shared_deck(self):
+        self.client.force_authenticate(self.user)
+        res = self.client.patch(
+            f"/api/v1/decks/{self.a1.id}", {"name": "Hacked"}, format="json"
+        )
         self.assertEqual(res.status_code, 403)
 
-    def test_admin_can_create(self):
-        self.client.force_authenticate(self.admin)
-        res = self.client.post("/api/v1/cards", {**self.payload, "deck": self.a1.id}, format="json")
+    def test_cannot_touch_other_users_deck(self):
+        other = User.objects.create_user(email="other@e.com", password="pw1234567")
+        d = Deck.objects.create(language=self.lang, owner=other, name="Theirs", slug="theirs")
+        self.client.force_authenticate(self.user)
+        ids = [x["id"] for x in self.client.get("/api/v1/decks?owner=me").json()["data"]["results"]]
+        self.assertNotIn(d.id, ids)
+        self.assertEqual(self.client.patch(f"/api/v1/decks/{d.id}", {"name": "x"}, format="json").status_code, 404)
+        self.assertEqual(self.client.delete(f"/api/v1/decks/{d.id}").status_code, 404)
+
+    def test_owner_can_rename_and_delete(self):
+        self.client.force_authenticate(self.user)
+        d = Deck.objects.create(language=self.lang, owner=self.user, name="Mine", slug="mine")
+        self.assertEqual(
+            self.client.patch(f"/api/v1/decks/{d.id}", {"name": "Renamed"}, format="json").status_code,
+            200,
+        )
+        self.assertEqual(self.client.delete(f"/api/v1/decks/{d.id}").status_code, 204)
+
+
+class CardOwnershipTests(CatalogTestBase):
+    def setUp(self):
+        super().setUp()
+        self.my_deck = Deck.objects.create(
+            language=self.lang, owner=self.user, name="Mine", slug="mine"
+        )
+
+    def test_create_card_in_own_deck(self):
+        self.client.force_authenticate(self.user)
+        res = self.client.post(
+            "/api/v1/cards", {"deck": self.my_deck.id, "front": "dog", "back": "it"}, format="json"
+        )
         self.assertEqual(res.status_code, 201)
+
+    def test_cannot_add_card_to_shared_deck(self):
+        self.client.force_authenticate(self.user)
+        res = self.client.post(
+            "/api/v1/cards", {"deck": self.a1.id, "front": "x", "back": "y"}, format="json"
+        )
+        self.assertEqual(res.status_code, 400)
+
+    def test_cannot_touch_other_users_card(self):
+        other = User.objects.create_user(email="o2@e.com", password="pw1234567")
+        od = Deck.objects.create(language=self.lang, owner=other, name="od", slug="od")
+        oc = Card.objects.create(deck=od, front="x", back="y")
+        self.client.force_authenticate(self.user)
+        self.assertEqual(
+            self.client.patch(f"/api/v1/cards/{oc.id}", {"front": "z"}, format="json").status_code, 404
+        )
+        self.assertEqual(self.client.delete(f"/api/v1/cards/{oc.id}").status_code, 404)

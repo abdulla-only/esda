@@ -50,7 +50,10 @@ algorithm (the `fsrs` package) to decide when each card is due.
   to `/api/v1/auth/telegram`; the server validates it with HMAC-SHA256 over
   `BOT_TOKEN` and returns a JWT.
 - **Plain-web login**: email + password via `/api/v1/auth/token` (simplejwt).
-- Content (languages, decks, cards) is curated through the **Django admin**.
+- The shared **English/Russian CEFR catalog** is curated through the Django
+  admin (decks with no owner). Each user can also create their **own decks and
+  cards** via the API/app; ownership is enforced server-side (a user only sees
+  the shared catalog + their own content, and can only write their own).
 
 ### API conventions
 
@@ -75,10 +78,11 @@ algorithm (the `fsrs` package) to decide when each card is due.
 | POST   | `/api/v1/auth/token/refresh` | public | Refresh access token                 |
 | GET    | `/api/v1/auth/me`            | JWT    | Current user                         |
 | GET    | `/api/v1/languages`          | JWT    | Languages                            |
-| GET    | `/api/v1/decks`              | JWT    | Flat deck list (`?language=en`)      |
-| GET    | `/api/v1/decks/tree`         | JWT    | Nested deck tree                     |
-| GET    | `/api/v1/cards`              | JWT    | List cards (`?deck=<id>`)            |
-| POST/PUT/DELETE | `/api/v1/cards`     | admin  | Card writes (content is curated)     |
+| GET    | `/api/v1/decks`              | JWT    | Decks: shared + own (`?owner=me`, `?language=en`) |
+| GET    | `/api/v1/decks/tree`         | JWT    | Nested deck tree (shared + own)      |
+| POST/PATCH/DELETE | `/api/v1/decks[/{id}]` | JWT | Create/rename/delete your **own** decks |
+| GET    | `/api/v1/cards`              | JWT    | List cards in shared/own decks (`?deck=<id>`) |
+| POST/PATCH/DELETE | `/api/v1/cards[/{id}]` | JWT | CRUD cards in your **own** decks      |
 | GET    | `/api/v1/study/queue`        | JWT    | Due + new cards (`?deck=&limit=`)    |
 | POST   | `/api/v1/study/grade`        | JWT    | Grade a card (`{card, rating 1-4}`)  |
 

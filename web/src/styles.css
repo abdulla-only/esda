@@ -595,6 +595,118 @@ button {
   line-height: 1;
 }
 
+/* ---------- My decks (CRUD) ---------- */
+.mydeck-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mydeck-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+/* Native select styled to match .input. */
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b6d85' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* A deck tile that combines an open-toggle with edit/delete actions. */
+.deck-tile--row {
+  padding: 0;
+  overflow: hidden;
+}
+.deck-tile--row.is-open {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+}
+.deck-tile__open {
+  appearance: none;
+  border: none;
+  background: transparent;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 6px 14px 16px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+.deck-tile__actions {
+  display: flex;
+  gap: 6px;
+  padding-right: 12px;
+}
+.deck-tile--edit {
+  gap: 8px;
+  padding: 12px;
+  flex-wrap: wrap;
+}
+.deck-tile--edit .input {
+  flex: 1;
+  min-width: 140px;
+}
+.btn--sm {
+  padding: 10px 14px;
+  font-size: 14px;
+  border-radius: 11px;
+}
+
+.card-panel {
+  margin-top: 18px;
+  animation: rise 0.3s var(--ease) both;
+}
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-item--edit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.card-item__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.card-item__terms {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 15px;
+}
+.card-item__terms .chevron {
+  font-size: 16px;
+}
+.card-item__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
 /* ---------- Bottom nav ---------- */
 .tabbar {
   position: fixed;
@@ -755,6 +867,11 @@ button {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
+  }
+  /* My-decks rows carry inline actions, so keep them full-width. */
+  .mydeck-list {
+    display: flex;
+    flex-direction: column;
   }
 }
 

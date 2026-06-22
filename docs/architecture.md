@@ -42,6 +42,25 @@ Three ways to obtain a JWT (djangorestframework-simplejwt):
 2. **Email/password** — `POST /api/v1/auth/token` (the custom user uses email as
    `USERNAME_FIELD`).
 
+## Content ownership (shared catalog + personal decks)
+
+`Deck` has a nullable `owner`:
+- `owner = NULL` → the shared, curated English/Russian CEFR catalog (managed in
+  the Django admin / `seed`).
+- `owner = <user>` → that user's personal decks. `Card` ownership derives from
+  its `deck.owner`.
+
+`unique_together = (owner, parent, slug)` so each user has an independent slug
+namespace. Enforcement (no IDOR):
+- **Reads** return shared (`owner IS NULL`) + the requester's own decks/cards.
+  `?owner=me` narrows decks to the user's own.
+- **Writes** are allowed only on owned objects: `DeckViewSet` forces
+  `owner = request.user` on create and `IsDeckOwnerOrReadOnly` blocks editing
+  shared/others' decks; `CardSerializer.validate_deck` + `IsCardDeckOwnerOrReadOnly`
+  ensure cards are only created/edited in the user's own decks.
+- The **study queue** offers shared + own new cards, never another user's
+  personal cards.
+
 ## Scheduling (FSRS)
 
 `srs/services.py` bridges our `Review` rows and the `fsrs` package:

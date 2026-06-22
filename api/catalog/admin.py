@@ -18,11 +18,11 @@ class CardInline(admin.TabularInline):
 
 @admin.register(Deck)
 class DeckAdmin(admin.ModelAdmin):
-    list_display = ("name", "language", "parent", "slug", "order")
-    list_filter = ("language",)
+    list_display = ("name", "language", "owner", "parent", "slug", "order")
+    list_filter = ("language", "owner")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
-    autocomplete_fields = ("parent",)
+    autocomplete_fields = ("parent", "owner")
     inlines = [CardInline]
 
 
