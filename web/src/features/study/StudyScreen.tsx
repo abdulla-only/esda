@@ -10,9 +10,28 @@ const GRADES: { rating: Rating; label: string; key: string }[] = [
   { rating: 4, label: "Easy", key: "easy" },
 ];
 
-export function StudyScreen({ deck }: { deck?: number }) {
+export function StudyScreen({
+  deck,
+  deckName,
+  onStudyAll,
+}: {
+  deck?: number;
+  deckName?: string;
+  onStudyAll?: () => void;
+}) {
   const { current, total, index, revealed, loading, grading, reveal, grade, reload } =
     useStudySession(deck);
+
+  const scopeBanner = deckName ? (
+    <div className="study-scope">
+      Studying <strong>{deckName}</strong>
+      {onStudyAll && (
+        <button type="button" className="link" onClick={onStudyAll}>
+          Study all
+        </button>
+      )}
+    </div>
+  ) : null;
 
   // Keyboard: Space reveals, 1–4 grade. A small power-user nicety.
   useEffect(() => {
@@ -44,10 +63,21 @@ export function StudyScreen({ deck }: { deck?: number }) {
         <h2 className="screen__title" style={{ margin: 0 }}>
           All caught up
         </h2>
-        <p className="muted">No cards are due right now. Come back later!</p>
-        <button className="btn" onClick={reload}>
-          Refresh
-        </button>
+        <p className="muted">
+          {deckName
+            ? `Nothing due in “${deckName}” right now.`
+            : "No cards are due right now. Come back later!"}
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn" onClick={reload}>
+            Refresh
+          </button>
+          {deckName && onStudyAll && (
+            <button className="btn btn-primary" onClick={onStudyAll}>
+              Study all decks
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -56,6 +86,7 @@ export function StudyScreen({ deck }: { deck?: number }) {
 
   return (
     <div className="screen study">
+      {scopeBanner}
       <div className="progress">
         <div className="progress__fill" style={{ width: `${pct}%` }} />
       </div>

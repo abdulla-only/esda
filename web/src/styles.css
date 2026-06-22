@@ -225,6 +225,24 @@ button {
 .icon-btn:active {
   transform: scale(0.92);
 }
+.icon-btn--accent {
+  background: var(--brand-soft);
+  color: var(--brand-text);
+}
+
+/* Study scope banner (when studying a single deck). */
+.study-scope {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.study-scope strong {
+  color: var(--text);
+}
 
 :focus-visible {
   outline: 2px solid var(--brand);

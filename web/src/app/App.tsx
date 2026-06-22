@@ -10,6 +10,13 @@ type Tab = "study" | "decks";
 export function App() {
   const { authed, loading, logout } = useAuth();
   const [tab, setTab] = useState<Tab>("study");
+  // null = study everything; otherwise study just this deck.
+  const [studyDeck, setStudyDeck] = useState<{ id: number; name: string } | null>(null);
+
+  const studyAll = () => {
+    setStudyDeck(null);
+    setTab("study");
+  };
 
   if (loading) {
     return (
@@ -34,7 +41,7 @@ export function App() {
           </span>
         </div>
         <nav className="sidebar__nav">
-          <button className={`navitem ${tab === "study" ? "active" : ""}`} onClick={() => setTab("study")}>
+          <button className={`navitem ${tab === "study" ? "active" : ""}`} onClick={studyAll}>
             <CardsGlyph size={20} />
             Study
           </button>
@@ -63,12 +70,25 @@ export function App() {
       </header>
 
       <main className="content">
-        {tab === "study" ? <StudyScreen /> : <MyDecks />}
+        {tab === "study" ? (
+          <StudyScreen
+            deck={studyDeck?.id}
+            deckName={studyDeck?.name}
+            onStudyAll={studyAll}
+          />
+        ) : (
+          <MyDecks
+            onStudy={(d) => {
+              setStudyDeck({ id: d.id, name: d.name });
+              setTab("study");
+            }}
+          />
+        )}
       </main>
 
       {/* Mobile: floating bottom nav */}
       <nav className="tabbar">
-        <button className={`tab ${tab === "study" ? "active" : ""}`} onClick={() => setTab("study")}>
+        <button className={`tab ${tab === "study" ? "active" : ""}`} onClick={studyAll}>
           <CardsGlyph size={18} />
           Study
         </button>

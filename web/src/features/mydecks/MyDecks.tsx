@@ -14,7 +14,7 @@ const POS_OPTIONS: PartOfSpeech[] = [
   "other",
 ];
 
-export function MyDecks() {
+export function MyDecks({ onStudy }: { onStudy?: (deck: Deck) => void }) {
   const {
     decks,
     languages,
@@ -62,6 +62,7 @@ export function MyDecks() {
               }
               onRename={renameDeck}
               onDelete={deleteDeck}
+              onStudy={onStudy}
             />
           ))}
         </div>
@@ -138,6 +139,7 @@ function DeckRow({
   onToggle,
   onRename,
   onDelete,
+  onStudy,
 }: {
   deck: Deck;
   languages: Language[];
@@ -146,6 +148,7 @@ function DeckRow({
   onToggle: () => void;
   onRename: (id: number, name: string) => void | Promise<void>;
   onDelete: (id: number) => void | Promise<void>;
+  onStudy?: (deck: Deck) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(deck.name);
@@ -205,6 +208,16 @@ function DeckRow({
         <span className="chevron">{open ? "⌄" : "›"}</span>
       </button>
       <div className="deck-tile__actions">
+        {onStudy && deck.card_count > 0 && (
+          <button
+            className="icon-btn icon-btn--accent"
+            aria-label={`Study ${deck.name}`}
+            title="Study this deck"
+            onClick={() => onStudy(deck)}
+          >
+            <PlayGlyph />
+          </button>
+        )}
         <button
           className="icon-btn"
           aria-label="Rename deck"
@@ -458,6 +471,14 @@ function PosSelect({
         </option>
       ))}
     </select>
+  );
+}
+
+function PlayGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M7 5l12 7-12 7V5z" fill="currentColor" />
+    </svg>
   );
 }
 
