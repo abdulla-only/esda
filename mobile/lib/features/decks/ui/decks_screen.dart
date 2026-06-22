@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/api_client.dart';
+import '../../shared/ui/feedback.dart';
 import '../controller/decks_controller.dart';
 import '../data/deck.dart';
 import '../data/deck_api.dart';
@@ -40,8 +41,12 @@ class _DecksScreenState extends State<DecksScreen> {
       context,
       languages: _controller.languages,
     );
-    if (result != null) {
+    if (result == null) return;
+    try {
       await _controller.create(language: result.language, name: result.name);
+      if (mounted) showMessage(context, 'Deck created');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't create the deck.", error: true);
     }
   }
 
@@ -52,36 +57,30 @@ class _DecksScreenState extends State<DecksScreen> {
       initialName: deck.name,
       lockedLanguage: deck.language,
     );
-    if (result != null) await _controller.rename(deck.id, result.name);
+    if (result == null) return;
+    try {
+      await _controller.rename(deck.id, result.name);
+      if (mounted) showMessage(context, 'Deck renamed');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't rename the deck.", error: true);
+    }
   }
 
   Future<void> _delete(Deck deck) async {
-    final ok = await _confirm(
-      'Delete deck?',
-      'Delete "${deck.name}" and its ${deck.cardCount} card(s)? This cannot be undone.',
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete deck?',
+      message: 'Delete "${deck.name}" and its ${deck.cardCount} card(s)? This cannot be undone.',
+      confirmText: 'Delete',
+      danger: true,
     );
-    if (ok) await _controller.delete(deck.id);
-  }
-
-  Future<bool> _confirm(String title, String message) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
+    if (!ok) return;
+    try {
+      await _controller.delete(deck.id);
+      if (mounted) showMessage(context, 'Deck deleted');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't delete the deck.", error: true);
+    }
   }
 
   void _openCards(Deck deck) {

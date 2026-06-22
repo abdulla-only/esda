@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/api_client.dart';
+import '../../shared/ui/feedback.dart';
 import '../../study/ui/study_screen.dart';
 import '../controller/deck_cards_controller.dart';
 import '../data/card.dart';
@@ -37,7 +38,8 @@ class _DeckCardsScreenState extends State<DeckCardsScreen> {
 
   Future<void> _add() async {
     final result = await showCardForm(context);
-    if (result != null) {
+    if (result == null) return;
+    try {
       await _controller.create(
         front: result.front,
         back: result.back,
@@ -45,12 +47,16 @@ class _DeckCardsScreenState extends State<DeckCardsScreen> {
         example: result.example,
         description: result.description,
       );
+      if (mounted) showMessage(context, 'Card added');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't add the card.", error: true);
     }
   }
 
   Future<void> _edit(DeckCard card) async {
     final result = await showCardForm(context, card: card);
-    if (result != null) {
+    if (result == null) return;
+    try {
       await _controller.update(
         card.id,
         front: result.front,
@@ -59,28 +65,27 @@ class _DeckCardsScreenState extends State<DeckCardsScreen> {
         example: result.example,
         description: result.description,
       );
+      if (mounted) showMessage(context, 'Card saved');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't save the card.", error: true);
     }
   }
 
   Future<void> _delete(DeckCard card) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete card?'),
-        content: Text('Delete "${card.front}"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete card?',
+      message: 'Delete "${card.front}"? This cannot be undone.',
+      confirmText: 'Delete',
+      danger: true,
     );
-    if (ok == true) await _controller.delete(card.id);
+    if (!ok) return;
+    try {
+      await _controller.delete(card.id);
+      if (mounted) showMessage(context, 'Card deleted');
+    } catch (_) {
+      if (mounted) showMessage(context, "Couldn't delete the card.", error: true);
+    }
   }
 
   void _study() {

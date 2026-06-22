@@ -29,7 +29,8 @@ class DeckCardsController extends ChangeNotifier {
     }
   }
 
-  Future<bool> create({
+  // Mutations rethrow on failure; the screen shows a snackbar.
+  Future<void> create({
     required String front,
     required String back,
     String? partOfSpeech,
@@ -48,7 +49,7 @@ class DeckCardsController extends ChangeNotifier {
         cards = await _api.list(deckId);
       });
 
-  Future<bool> update(
+  Future<void> update(
     int id, {
     String? front,
     String? back,
@@ -68,21 +69,16 @@ class DeckCardsController extends ChangeNotifier {
         cards = await _api.list(deckId);
       });
 
-  Future<bool> delete(int id) => _mutate(() async {
+  Future<void> delete(int id) => _mutate(() async {
         await _api.delete(id);
         cards = await _api.list(deckId);
       });
 
-  Future<bool> _mutate(Future<void> Function() action) async {
+  Future<void> _mutate(Future<void> Function() action) async {
     busy = true;
-    error = null;
     notifyListeners();
     try {
       await action();
-      return true;
-    } catch (e) {
-      error = '$e';
-      return false;
     } finally {
       busy = false;
       notifyListeners();

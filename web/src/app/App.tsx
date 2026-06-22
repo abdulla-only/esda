@@ -4,13 +4,25 @@ import { useAuth } from "../features/auth/useAuth";
 import { Login } from "../features/auth/Login";
 import { MyDecks } from "../features/mydecks/MyDecks";
 import { StudyScreen } from "../features/study/StudyScreen";
+import { useConfirm } from "../shared/ui/confirm";
 import { ThemeToggle } from "./ThemeToggle";
 
 type Tab = "study" | "decks";
 
 export function App() {
   const { authed, loading, logout } = useAuth();
+  const confirm = useConfirm();
   const [tab, setTab] = useState<Tab>("study");
+
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: "Sign out?",
+      message: "You'll need to sign in again.",
+      confirmText: "Sign out",
+      danger: true,
+    });
+    if (ok) logout();
+  };
   // null = study everything; otherwise study just this deck.
   const [studyDeck, setStudyDeck] = useState<{ id: number; name: string } | null>(null);
 
@@ -54,7 +66,7 @@ export function App() {
         <div className="sidebar__theme">
           <ThemeToggle />
         </div>
-        <button className="navitem navitem--muted" onClick={logout}>
+        <button className="navitem navitem--muted" onClick={handleLogout}>
           <LogoutGlyph />
           Sign out
         </button>
@@ -70,7 +82,7 @@ export function App() {
         </span>
         <div className="topbar__actions">
           <ThemeToggle />
-          <button className="icon-btn" onClick={logout} aria-label="Sign out">
+          <button className="icon-btn" onClick={handleLogout} aria-label="Sign out">
             <LogoutGlyph />
           </button>
         </div>

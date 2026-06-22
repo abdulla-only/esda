@@ -32,32 +32,29 @@ class DecksController extends ChangeNotifier {
     }
   }
 
-  Future<bool> create({required int language, required String name}) =>
+  // Mutations rethrow on failure; the screen shows a snackbar. (`error` is only
+  // for the full-screen initial-load failure.)
+  Future<void> create({required int language, required String name}) =>
       _mutate(() async {
         await _api.create(language: language, name: name);
         decks = await _api.list();
       });
 
-  Future<bool> rename(int id, String name) => _mutate(() async {
+  Future<void> rename(int id, String name) => _mutate(() async {
         await _api.rename(id, name);
         decks = await _api.list();
       });
 
-  Future<bool> delete(int id) => _mutate(() async {
+  Future<void> delete(int id) => _mutate(() async {
         await _api.delete(id);
         decks = await _api.list();
       });
 
-  Future<bool> _mutate(Future<void> Function() action) async {
+  Future<void> _mutate(Future<void> Function() action) async {
     busy = true;
-    error = null;
     notifyListeners();
     try {
       await action();
-      return true;
-    } catch (e) {
-      error = '$e';
-      return false;
     } finally {
       busy = false;
       notifyListeners();

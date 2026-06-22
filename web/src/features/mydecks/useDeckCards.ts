@@ -23,14 +23,12 @@ export function useDeckCards(deckId: number) {
     };
   }, [deckId]);
 
+  // Mutations rethrow on failure so the UI shows one toast (DRY feedback).
   const addCard = async (payload: CardPayload) => {
     setBusy(true);
-    setError(null);
     try {
       const card = await myDecksApi.createCard(deckId, payload);
       setCards((prev) => [...prev, card]);
-    } catch {
-      setError("Couldn't add the card.");
     } finally {
       setBusy(false);
     }
@@ -38,12 +36,9 @@ export function useDeckCards(deckId: number) {
 
   const editCard = async (id: number, payload: Partial<CardPayload>) => {
     setBusy(true);
-    setError(null);
     try {
       const updated = await myDecksApi.updateCard(id, payload);
       setCards((prev) => prev.map((c) => (c.id === id ? updated : c)));
-    } catch {
-      setError("Couldn't update the card.");
     } finally {
       setBusy(false);
     }
@@ -51,12 +46,9 @@ export function useDeckCards(deckId: number) {
 
   const deleteCard = async (id: number) => {
     setBusy(true);
-    setError(null);
     try {
       await myDecksApi.deleteCard(id);
       setCards((prev) => prev.filter((c) => c.id !== id));
-    } catch {
-      setError("Couldn't delete the card.");
     } finally {
       setBusy(false);
     }

@@ -1,6 +1,9 @@
 import { useState } from "react";
 
+import { errorMessage } from "../../shared/api/errors";
 import type { Card, Deck, Language, PartOfSpeech } from "../../shared/api/types";
+import { useConfirm } from "../../shared/ui/confirm";
+import { useToast } from "../../shared/ui/toast";
 import type { CardPayload } from "./api";
 import { useDeckCards } from "./useDeckCards";
 import { useMyDecks } from "./useMyDecks";
@@ -15,17 +18,52 @@ const POS_OPTIONS: PartOfSpeech[] = [
 ];
 
 export function MyDecks({ onStudy }: { onStudy?: (deck: Deck) => void }) {
-  const {
-    decks,
-    languages,
-    loading,
-    busy,
-    error,
-    createDeck,
-    renameDeck,
-    deleteDeck,
-  } = useMyDecks();
+  const { decks, languages, loading, busy, error, createDeck, renameDeck, deleteDeck } =
+    useMyDecks();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [openDeckId, setOpenDeckId] = useState<number | null>(null);
+
+  // Wrapped handlers: one place for success/error feedback. Return bool so forms
+  // know whether to reset/close.
+  const onCreateDeck = async (language: number, name: string) => {
+    try {
+      await createDeck(language, name);
+      toast.success("Deck created");
+      return true;
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't create the deck."));
+      return false;
+    }
+  };
+
+  const onRenameDeck = async (id: number, name: string) => {
+    try {
+      await renameDeck(id, name);
+      toast.success("Deck renamed");
+      return true;
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't rename the deck."));
+      return false;
+    }
+  };
+
+  const onDeleteDeck = async (deck: Deck) => {
+    const ok = await confirm({
+      title: `Delete "${deck.name}"?`,
+      message: "This deletes the deck and all its cards.",
+      confirmText: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
+    if (openDeckId === deck.id) setOpenDeckId(null);
+    try {
+      await deleteDeck(deck.id);
+      toast.success("Deck deleted");
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't delete the deck."));
+    }
+  };
 
   if (loading) {
     return (
@@ -42,7 +80,7 @@ export function MyDecks({ onStudy }: { onStudy?: (deck: Deck) => void }) {
       <h1 className="screen__title">Decks</h1>
       {error && <div className="alert">{error}</div>}
 
-      <NewDeckForm languages={languages} busy={busy} onCreate={createDeck} />
+      <NewDeckForm languages={languages} busy={busy} onCreate={onCreateDeck} />
 
       {decks.length === 0 ? (
         <p className="muted" style={{ textAlign: "center", marginTop: 18 }}>
@@ -57,11 +95,9 @@ export function MyDecks({ onStudy }: { onStudy?: (deck: Deck) => void }) {
               languages={languages}
               busy={busy}
               open={deck.id === openDeckId}
-              onToggle={() =>
-                setOpenDeckId((id) => (id === deck.id ? null : deck.id))
-              }
-              onRename={renameDeck}
-              onDelete={deleteDeck}
+              onToggle={() => setOpenDeckId((id) => (id === deck.id ? null : deck.id))}
+              onRename={onRenameDeck}
+              onDelete={onDeleteDeck}
               onStudy={onStudy}
             />
           ))}
@@ -84,7 +120,7 @@ function NewDeckForm({
 }: {
   languages: Language[];
   busy: boolean;
-  onCreate: (language: number, name: string) => void | Promise<void>;
+  onCreate: (language: number, name: string) => Promise<boolean>;
 }) {
   const [name, setName] = useState("");
   const [language, setLanguage] = useState<number | "">("");
@@ -92,8 +128,7 @@ function NewDeckForm({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || language === "") return;
-    await onCreate(language, name.trim());
-    setName("");
+    if (await onCreate(language, name.trim())) setName("");
   };
 
   return (
@@ -108,9 +143,7 @@ function NewDeckForm({
         <select
           className="input select"
           value={language}
-          onChange={(e) =>
-            setLanguage(e.target.value === "" ? "" : Number(e.target.value))
-          }
+          onChange={(e) => setLanguage(e.target.value === "" ? "" : Number(e.target.value))}
         >
           <option value="">Language</option>
           {languages.map((l) => (
@@ -146,8 +179,8 @@ function DeckRow({
   busy: boolean;
   open: boolean;
   onToggle: () => void;
-  onRename: (id: number, name: string) => void | Promise<void>;
-  onDelete: (id: number) => void | Promise<void>;
+  onRename: (id: number, name: string) => Promise<boolean>;
+  onDelete: (deck: Deck) => void | Promise<void>;
   onStudy?: (deck: Deck) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -156,14 +189,7 @@ function DeckRow({
   const saveName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    await onRename(deck.id, name.trim());
-    setEditing(false);
-  };
-
-  const remove = () => {
-    if (window.confirm(`Delete deck "${deck.name}" and all its cards?`)) {
-      void onDelete(deck.id);
-    }
+    if (await onRename(deck.id, name.trim())) setEditing(false);
   };
 
   if (editing) {
@@ -195,9 +221,7 @@ function DeckRow({
   return (
     <div className={`deck-tile deck-tile--row ${open ? "is-open" : ""}`}>
       <button className="deck-tile__open" onClick={onToggle}>
-        <span className="deck-badge">
-          {deck.name.slice(0, 2).toUpperCase()}
-        </span>
+        <span className="deck-badge">{deck.name.slice(0, 2).toUpperCase()}</span>
         <span className="deck-tile__main">
           <span className="deck-tile__name">
             {deck.name}
@@ -218,14 +242,10 @@ function DeckRow({
             <PlayGlyph />
           </button>
         )}
-        <button
-          className="icon-btn"
-          aria-label="Rename deck"
-          onClick={() => setEditing(true)}
-        >
+        <button className="icon-btn" aria-label="Rename deck" onClick={() => setEditing(true)}>
           <PencilGlyph />
         </button>
-        <button className="icon-btn" aria-label="Delete deck" onClick={remove}>
+        <button className="icon-btn" aria-label="Delete deck" onClick={() => onDelete(deck)}>
           <TrashGlyph />
         </button>
       </div>
@@ -234,15 +254,53 @@ function DeckRow({
 }
 
 function DeckCards({ deck }: { deck: Deck }) {
-  const { cards, loading, busy, error, addCard, editCard, deleteCard } =
-    useDeckCards(deck.id);
+  const { cards, loading, busy, error, addCard, editCard, deleteCard } = useDeckCards(deck.id);
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const onAdd = async (payload: CardPayload) => {
+    try {
+      await addCard(payload);
+      toast.success("Card added");
+      return true;
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't add the card."));
+      return false;
+    }
+  };
+
+  const onEdit = async (id: number, payload: Partial<CardPayload>) => {
+    try {
+      await editCard(id, payload);
+      toast.success("Card saved");
+      return true;
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't save the card."));
+      return false;
+    }
+  };
+
+  const onDelete = async (card: Card) => {
+    const ok = await confirm({
+      title: `Delete "${card.front}"?`,
+      confirmText: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteCard(card.id);
+      toast.success("Card deleted");
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't delete the card."));
+    }
+  };
 
   return (
     <section className="card-panel">
       <h2 className="deck-group__title">Cards in {deck.name}</h2>
       {error && <div className="alert">{error}</div>}
 
-      <AddCardForm busy={busy} onAdd={addCard} />
+      <AddCardForm busy={busy} onAdd={onAdd} />
 
       {loading ? (
         <div className="screen--center" style={{ minHeight: 120 }}>
@@ -255,13 +313,7 @@ function DeckCards({ deck }: { deck: Deck }) {
       ) : (
         <div className="card-list">
           {cards.map((card) => (
-            <CardRow
-              key={card.id}
-              card={card}
-              busy={busy}
-              onEdit={editCard}
-              onDelete={deleteCard}
-            />
+            <CardRow key={card.id} card={card} busy={busy} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       )}
@@ -282,21 +334,21 @@ function AddCardForm({
   onAdd,
 }: {
   busy: boolean;
-  onAdd: (payload: CardPayload) => void | Promise<void>;
+  onAdd: (payload: CardPayload) => Promise<boolean>;
 }) {
   const [form, setForm] = useState<CardPayload>(EMPTY);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.front.trim() || !form.back.trim()) return;
-    await onAdd({
+    const ok = await onAdd({
       front: form.front.trim(),
       back: form.back.trim(),
       part_of_speech: form.part_of_speech,
       example: form.example?.trim(),
       description: form.description?.trim(),
     });
-    setForm(EMPTY);
+    if (ok) setForm(EMPTY);
   };
 
   return (
@@ -350,8 +402,8 @@ function CardRow({
 }: {
   card: Card;
   busy: boolean;
-  onEdit: (id: number, payload: Partial<CardPayload>) => void | Promise<void>;
-  onDelete: (id: number) => void | Promise<void>;
+  onEdit: (id: number, payload: Partial<CardPayload>) => Promise<boolean>;
+  onDelete: (card: Card) => void | Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<CardPayload>({
@@ -365,18 +417,14 @@ function CardRow({
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.front.trim() || !form.back.trim()) return;
-    await onEdit(card.id, {
+    const ok = await onEdit(card.id, {
       front: form.front.trim(),
       back: form.back.trim(),
       part_of_speech: form.part_of_speech,
       example: form.example?.trim(),
       description: form.description?.trim(),
     });
-    setEditing(false);
-  };
-
-  const remove = () => {
-    if (window.confirm(`Delete card "${card.front}"?`)) void onDelete(card.id);
+    if (ok) setEditing(false);
   };
 
   if (editing) {
@@ -414,11 +462,7 @@ function CardRow({
           <button type="submit" className="btn btn-primary btn--sm" disabled={busy}>
             Save
           </button>
-          <button
-            type="button"
-            className="btn btn--sm"
-            onClick={() => setEditing(false)}
-          >
+          <button type="button" className="btn btn--sm" onClick={() => setEditing(false)}>
             Cancel
           </button>
         </div>
@@ -437,14 +481,10 @@ function CardRow({
         <span className="chip">{card.part_of_speech}</span>
       </div>
       <div className="card-item__actions">
-        <button
-          className="icon-btn"
-          aria-label="Edit card"
-          onClick={() => setEditing(true)}
-        >
+        <button className="icon-btn" aria-label="Edit card" onClick={() => setEditing(true)}>
           <PencilGlyph />
         </button>
-        <button className="icon-btn" aria-label="Delete card" onClick={remove}>
+        <button className="icon-btn" aria-label="Delete card" onClick={() => onDelete(card)}>
           <TrashGlyph />
         </button>
       </div>

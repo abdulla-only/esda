@@ -26,14 +26,12 @@ export function useMyDecks() {
     };
   }, []);
 
+  // Mutations rethrow on failure so the UI can show one toast (DRY feedback).
   const createDeck = async (language: number, name: string) => {
     setBusy(true);
-    setError(null);
     try {
       const deck = await myDecksApi.createDeck(language, name);
       setDecks((prev) => [...prev, deck]);
-    } catch {
-      setError("Couldn't create the deck.");
     } finally {
       setBusy(false);
     }
@@ -41,12 +39,9 @@ export function useMyDecks() {
 
   const renameDeck = async (id: number, name: string) => {
     setBusy(true);
-    setError(null);
     try {
       const updated = await myDecksApi.renameDeck(id, name);
       setDecks((prev) => prev.map((d) => (d.id === id ? updated : d)));
-    } catch {
-      setError("Couldn't rename the deck.");
     } finally {
       setBusy(false);
     }
@@ -54,12 +49,9 @@ export function useMyDecks() {
 
   const deleteDeck = async (id: number) => {
     setBusy(true);
-    setError(null);
     try {
       await myDecksApi.deleteDeck(id);
       setDecks((prev) => prev.filter((d) => d.id !== id));
-    } catch {
-      setError("Couldn't delete the deck.");
     } finally {
       setBusy(false);
     }

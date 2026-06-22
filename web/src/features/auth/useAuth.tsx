@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { tokenStore } from "../../shared/api/client";
+import { errorMessage } from "../../shared/api/errors";
 import { getRawInitData } from "../../shared/telegram";
 import { authApi } from "./api";
 
@@ -21,18 +22,6 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | null>(null);
-
-/** Pull a human message out of the API error envelope, if present. */
-function serverError(e: unknown): string | null {
-  const err = (e as { response?: { data?: { error?: { message?: string; details?: Record<string, string[]> } } } })
-    ?.response?.data?.error;
-  if (!err) return null;
-  if (err.details) {
-    const first = Object.values(err.details)[0];
-    if (Array.isArray(first) && first.length) return String(first[0]);
-  }
-  return err.message ?? null;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState<boolean>(tokenStore.isAuthed);
@@ -90,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           tokenStore.set(res);
           setAuthed(true);
         } catch (e) {
-          setError(serverError(e) ?? "Registration failed.");
+          setError(errorMessage(e, "Registration failed."));
           throw new Error("register failed");
         }
       },

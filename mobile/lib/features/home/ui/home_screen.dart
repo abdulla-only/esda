@@ -6,6 +6,7 @@ import '../../auth/ui/login_screen.dart';
 import '../../decks/ui/decks_screen.dart';
 import '../../shared/api_client.dart';
 import '../../shared/theme.dart';
+import '../../shared/ui/feedback.dart';
 import '../../shared/ui/theme_toggle.dart';
 import '../../study/ui/study_screen.dart';
 
@@ -31,6 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout() async {
+    final ok = await confirmDialog(
+      context,
+      title: 'Sign out?',
+      message: "You'll need to sign in again.",
+      confirmText: 'Sign out',
+      danger: true,
+    );
+    if (!ok) return;
     await _auth.logout();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
