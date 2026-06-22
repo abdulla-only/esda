@@ -3,9 +3,9 @@ import { ReactNode, useState } from "react";
 import { getTheme, setTheme, Theme } from "../shared/theme";
 
 const OPTIONS: { value: Theme; label: string; glyph: ReactNode }[] = [
+  { value: "system", label: "System", glyph: <SystemGlyph /> },
   { value: "light", label: "Light", glyph: <SunGlyph /> },
   { value: "dark", label: "Dark", glyph: <MoonGlyph /> },
-  { value: "system", label: "System", glyph: <SystemGlyph /> },
 ];
 
 export function ThemeToggle() {
