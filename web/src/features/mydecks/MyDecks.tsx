@@ -3,6 +3,7 @@ import { useState } from "react";
 import { errorMessage } from "../../shared/api/errors";
 import type { Card, Deck, Language, PartOfSpeech } from "../../shared/api/types";
 import { useConfirm } from "../../shared/ui/confirm";
+import { Select } from "../../shared/ui/Select";
 import { useToast } from "../../shared/ui/toast";
 import type { CardPayload } from "./api";
 import { useDeckCards } from "./useDeckCards";
@@ -140,18 +141,12 @@ function NewDeckForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <select
-          className="input select"
+        <Select
           value={language}
-          onChange={(e) => setLanguage(e.target.value === "" ? "" : Number(e.target.value))}
-        >
-          <option value="">Language</option>
-          {languages.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
+          placeholder="Language"
+          options={languages.map((l) => ({ value: l.id, label: l.name }))}
+          onChange={(v) => setLanguage(Number(v))}
+        />
       </div>
       <button
         type="submit"
@@ -500,17 +495,11 @@ function PosSelect({
   onChange: (pos: PartOfSpeech) => void;
 }) {
   return (
-    <select
-      className="input select"
+    <Select
       value={value}
-      onChange={(e) => onChange(e.target.value as PartOfSpeech)}
-    >
-      {POS_OPTIONS.map((pos) => (
-        <option key={pos} value={pos}>
-          {pos}
-        </option>
-      ))}
-    </select>
+      options={POS_OPTIONS.map((pos) => ({ value: pos, label: pos }))}
+      onChange={(v) => onChange(v as PartOfSpeech)}
+    />
   );
 }
 
