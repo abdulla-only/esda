@@ -266,8 +266,8 @@ button {
 }
 .sidebar__theme {
   display: flex;
-  justify-content: center;
-  padding: 8px 0 4px;
+  justify-content: flex-start;
+  padding: 4px 14px 8px;
 }
 .auth__theme {
   position: fixed;
