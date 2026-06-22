@@ -32,7 +32,7 @@ Invoke implicitly ("use the backend-engineer to…") or via the Agent tool with
 | Skill            | What it does                                                       |
 |------------------|--------------------------------------------------------------------|
 | `dev-stack`      | bring up / verify / tear down the docker stack, with the gotchas   |
-| `smoke-test`     | end-to-end check: login → deck tree → study queue → grade → 401    |
+| `smoke-test`     | end-to-end check: login → create deck/card → study queue → grade → 401 |
 | `add-vocabulary` | add languages / CEFR decks / cards the right way                   |
 
 ## Recommended permission allowlist (opt-in)

@@ -14,11 +14,8 @@ class Language(models.Model):
 
 
 class Deck(models.Model):
-    """A node in a per-language deck tree (adjacency list via ``parent``).
-
-    ``owner`` is NULL for the shared, curated catalog and set to a user for that
-    user's personal decks. Card ownership derives from ``deck.owner``.
-    """
+    """A user-owned deck. Every deck belongs to an ``owner``; ``Card`` ownership
+    derives from ``deck.owner``. (``parent`` exists for optional nesting.)"""
 
     language = models.ForeignKey(
         Language, on_delete=models.CASCADE, related_name="decks"
@@ -26,8 +23,6 @@ class Deck(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         related_name="owned_decks",
     )
     parent = models.ForeignKey(
@@ -45,10 +40,6 @@ class Deck(models.Model):
         ordering = ("order", "name")
         # slug is unique per owner within a parent (shared catalog = owner NULL).
         unique_together = ("owner", "parent", "slug")
-
-    @property
-    def is_shared(self) -> bool:
-        return self.owner_id is None
 
     def __str__(self):
         return self.name

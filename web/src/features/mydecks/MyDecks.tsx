@@ -39,7 +39,7 @@ export function MyDecks() {
 
   return (
     <div className="screen">
-      <h1 className="screen__title">My decks</h1>
+      <h1 className="screen__title">Decks</h1>
       {error && <div className="alert">{error}</div>}
 
       <NewDeckForm languages={languages} busy={busy} onCreate={createDeck} />

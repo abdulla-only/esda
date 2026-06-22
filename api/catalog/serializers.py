@@ -50,28 +50,3 @@ class DeckSerializer(serializers.ModelSerializer):
         )
         # owner/slug/parent are managed server-side; personal decks are flat.
         read_only_fields = ("owner", "slug", "parent", "card_count")
-
-
-class DeckTreeSerializer(serializers.ModelSerializer):
-    """Nests child decks under ``children`` from a pre-built in-memory tree."""
-
-    children = serializers.SerializerMethodField()
-    card_count = serializers.IntegerField(read_only=True)  # annotated by build_deck_tree
-
-    class Meta:
-        model = Deck
-        fields = (
-            "id",
-            "language",
-            "owner",
-            "name",
-            "slug",
-            "order",
-            "card_count",
-            "children",
-        )
-
-    def get_children(self, obj):
-        return DeckTreeSerializer(
-            obj.children_list, many=True, context=self.context
-        ).data

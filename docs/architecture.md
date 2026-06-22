@@ -42,24 +42,18 @@ Three ways to obtain a JWT (djangorestframework-simplejwt):
 2. **Email/password** — `POST /api/v1/auth/token` (the custom user uses email as
    `USERNAME_FIELD`).
 
-## Content ownership (shared catalog + personal decks)
+## Content ownership (per-user decks, no shared catalog)
 
-`Deck` has a nullable `owner`:
-- `owner = NULL` → the shared, curated English/Russian CEFR catalog (managed in
-  the Django admin / `seed`).
-- `owner = <user>` → that user's personal decks. `Card` ownership derives from
-  its `deck.owner`.
-
-`unique_together = (owner, parent, slug)` so each user has an independent slug
-namespace. Enforcement (no IDOR):
-- **Reads** return shared (`owner IS NULL`) + the requester's own decks/cards.
-  `?owner=me` narrows decks to the user's own.
-- **Writes** are allowed only on owned objects: `DeckViewSet` forces
-  `owner = request.user` on create and `IsDeckOwnerOrReadOnly` blocks editing
-  shared/others' decks; `CardSerializer.validate_deck` + `IsCardDeckOwnerOrReadOnly`
-  ensure cards are only created/edited in the user's own decks.
-- The **study queue** offers shared + own new cards, never another user's
-  personal cards.
+Every `Deck` has a required `owner`; `Card` ownership derives from its
+`deck.owner`. There is no shared catalog — `Language` (EN/RU) is the only shared
+reference data (from `seed`). `unique_together = (owner, parent, slug)` gives
+each user an independent slug namespace. Enforcement (no IDOR):
+- **Reads** return only the requester's own decks/cards.
+- **Writes**: `DeckViewSet` forces `owner = request.user` on create;
+  `IsDeckOwnerOrReadOnly`, `CardSerializer.validate_deck`, and
+  `IsCardDeckOwnerOrReadOnly` ensure a user only edits their own decks/cards
+  (others' return 404 — not in the queryset).
+- The **study queue** draws only from the user's own cards.
 
 ## Scheduling (FSRS)
 

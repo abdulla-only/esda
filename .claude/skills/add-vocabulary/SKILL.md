@@ -1,58 +1,50 @@
 ---
 name: add-vocabulary
 description: >-
-  Add languages, CEFR decks, and vocabulary cards to esda the right way. Use
-  when asked to add/seed content, create a new CEFR level (A1/A2/B1…), import a
-  word list, or extend the seed data.
+  Add vocabulary (decks and cards) to esda. Use when asked to add/create decks
+  or cards, import a word list, or seed a user's study content. Content is
+  per-user — there is no shared catalog.
 ---
 
 # add-vocabulary
 
-Content lives in the `catalog` app: `Language` → `Deck` (a per-language tree via
-`parent`) → `Card`. There are two correct ways to add content.
+Every deck and card belongs to a **user** (no shared catalog). `Language`
+(English/Russian) is the only shared reference data, created by `make seed`.
 
-## Option A — Django admin (curated, one-off)
+## In the app (normal way)
 
-Content is meant to be managed in the admin. Create an admin user and use the UI:
+Sign in, open the **Decks** tab → create a deck (name + language) → open it →
+**Add card** (front, back, part of speech, example). Edit/delete inline.
 
-```bash
-make superuser            # then open http://localhost:8000/admin
-```
+## Via the API (scripted import)
 
-`Language`, `Deck`, and `Card` are registered. Decks form a tree (`parent`); a
-deck's `slug` is unique within its parent (`unique_together = (parent, slug)`).
-
-## Option B — extend the seed command (reproducible / version-controlled)
-
-Edit `api/catalog/management/commands/seed.py` — it's idempotent
-(`get_or_create`). The `SEED` dict maps language code → decks → cards. Each card
-is `(front, back, part_of_speech, example)`.
-
-```python
-SEED = {
-    "en": {"name": "English", "decks": {
-        "A1": [("hello", "привет", "noun", "Hello, how are you?"), ...],
-        "B1": [ ... ],   # add a new CEFR level here
-    }},
-}
-```
-
-Then apply:
+All under `/api/v1`, JWT required; responses use the `{success,data}` envelope.
 
 ```bash
-make seed       # runs `python manage.py seed` in the api container
+API=http://localhost:8000/api/v1
+TOK=...   # from POST /auth/token
+H="Authorization: Bearer $TOK"
+LANG=$(curl -fsS "$API/languages" -H "$H" | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['results'][0]['id'])")
+
+# create a deck (owner is the caller; slug is generated server-side)
+DECK=$(curl -fsS -X POST "$API/decks" -H "$H" -H 'Content-Type: application/json' \
+  -d "{\"language\":$LANG,\"name\":\"Travel\"}" \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['id'])")
+
+# add a card
+curl -fsS -X POST "$API/cards" -H "$H" -H 'Content-Type: application/json' \
+  -d "{\"deck\":$DECK,\"front\":\"airport\",\"back\":\"aeroport\",\"part_of_speech\":\"noun\",\"example\":\"We met at the airport.\"}"
 ```
 
-## Rules to follow
+## Rules
 
-- **`part_of_speech`** must be one of the `Card.PartOfSpeech` choices:
-  `noun, verb, adjective, adverb, phrase, other`.
-- **CEFR decks** are top-level decks per language (A1, A2, …). For sub-topics,
-  create child decks (set `parent`); keep `slug` unique within the parent.
-- Use `order` to control display order within a deck/level.
-- `front` = the term being learned, `back` = its translation; `description` and
-  `example` are optional but improve study quality.
-- Keep the seed idempotent — always `get_or_create`, never blind `create`.
+- **`part_of_speech`** ∈ `noun, verb, adjective, adverb, phrase, other`.
+- A user can only add cards to **their own** decks (server rejects others'/
+  nonexistent decks with 400/404). `front` = term, `back` = translation;
+  `description`/`example` optional.
+- Decks are flat (no `parent` needed); `slug`/`owner` are server-managed — don't
+  send them.
+- `make seed` only creates the **languages**, not decks/cards.
 
-After adding content, run the `smoke-test` skill (or `make seed` + check
-`/api/v1/decks/tree`) to confirm it shows up.
+After importing, run the `smoke-test` skill or check `GET /api/v1/decks` /
+`GET /api/v1/cards?deck=<id>` to confirm.

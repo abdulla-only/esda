@@ -13,7 +13,9 @@ class SrsTestBase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="s@e.com", password="pw1234567")
         self.lang = Language.objects.create(code="en", name="English")
-        self.deck = Deck.objects.create(language=self.lang, name="A1", slug="a1")
+        self.deck = Deck.objects.create(
+            language=self.lang, owner=self.user, name="A1", slug="a1"
+        )
         self.cards = [
             Card.objects.create(deck=self.deck, front=f"w{i}", back=f"t{i}", order=i)
             for i in range(5)

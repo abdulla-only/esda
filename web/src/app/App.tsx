@@ -2,16 +2,14 @@ import { useState } from "react";
 
 import { useAuth } from "../features/auth/useAuth";
 import { Login } from "../features/auth/Login";
-import { Decks } from "../features/decks/Decks";
 import { MyDecks } from "../features/mydecks/MyDecks";
 import { StudyScreen } from "../features/study/StudyScreen";
 
-type Tab = "study" | "decks" | "mydecks";
+type Tab = "study" | "decks";
 
 export function App() {
   const { authed, loading, logout } = useAuth();
   const [tab, setTab] = useState<Tab>("study");
-  const [deckFilter, setDeckFilter] = useState<number | undefined>(undefined);
 
   if (loading) {
     return (
@@ -25,11 +23,6 @@ export function App() {
     return <Login />;
   }
 
-  const goStudy = () => {
-    setDeckFilter(undefined);
-    setTab("study");
-  };
-
   return (
     <div className="app">
       {/* Desktop: persistent sidebar */}
@@ -41,23 +34,13 @@ export function App() {
           </span>
         </div>
         <nav className="sidebar__nav">
-          <button className={`navitem ${tab === "study" ? "active" : ""}`} onClick={goStudy}>
+          <button className={`navitem ${tab === "study" ? "active" : ""}`} onClick={() => setTab("study")}>
             <CardsGlyph size={20} />
             Study
           </button>
-          <button
-            className={`navitem ${tab === "decks" ? "active" : ""}`}
-            onClick={() => setTab("decks")}
-          >
+          <button className={`navitem ${tab === "decks" ? "active" : ""}`} onClick={() => setTab("decks")}>
             <LayersGlyph size={20} />
             Decks
-          </button>
-          <button
-            className={`navitem ${tab === "mydecks" ? "active" : ""}`}
-            onClick={() => setTab("mydecks")}
-          >
-            <DeckEditGlyph size={20} />
-            My decks
           </button>
         </nav>
         <button className="navitem navitem--muted" onClick={logout}>
@@ -80,39 +63,18 @@ export function App() {
       </header>
 
       <main className="content">
-        {tab === "study" ? (
-          <StudyScreen deck={deckFilter} />
-        ) : tab === "mydecks" ? (
-          <MyDecks />
-        ) : (
-          <Decks
-            onStudy={(deckId) => {
-              setDeckFilter(deckId);
-              setTab("study");
-            }}
-          />
-        )}
+        {tab === "study" ? <StudyScreen /> : <MyDecks />}
       </main>
 
       {/* Mobile: floating bottom nav */}
       <nav className="tabbar">
-        <button className={`tab ${tab === "study" ? "active" : ""}`} onClick={goStudy}>
+        <button className={`tab ${tab === "study" ? "active" : ""}`} onClick={() => setTab("study")}>
           <CardsGlyph size={18} />
           Study
         </button>
-        <button
-          className={`tab ${tab === "decks" ? "active" : ""}`}
-          onClick={() => setTab("decks")}
-        >
+        <button className={`tab ${tab === "decks" ? "active" : ""}`} onClick={() => setTab("decks")}>
           <LayersGlyph size={18} />
           Decks
-        </button>
-        <button
-          className={`tab ${tab === "mydecks" ? "active" : ""}`}
-          onClick={() => setTab("mydecks")}
-        >
-          <DeckEditGlyph size={18} />
-          My decks
         </button>
       </nav>
     </div>
@@ -139,18 +101,6 @@ function LayersGlyph({ size = 18 }: { size?: number }) {
         strokeLinejoin="round"
         opacity="0.5"
         fill="none"
-      />
-    </svg>
-  );
-}
-
-function DeckEditGlyph({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="4" width="14" height="17" rx="3" fill="currentColor" opacity="0.4" />
-      <path
-        d="M17.5 11.5l3 3-5 5H12v-3l5.5-5z"
-        fill="currentColor"
       />
     </svg>
   );

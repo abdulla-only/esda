@@ -50,10 +50,10 @@ algorithm (the `fsrs` package) to decide when each card is due.
   to `/api/v1/auth/telegram`; the server validates it with HMAC-SHA256 over
   `BOT_TOKEN` and returns a JWT.
 - **Plain-web login**: email + password via `/api/v1/auth/token` (simplejwt).
-- The shared **English/Russian CEFR catalog** is curated through the Django
-  admin (decks with no owner). Each user can also create their **own decks and
-  cards** via the API/app; ownership is enforced server-side (a user only sees
-  the shared catalog + their own content, and can only write their own).
+- **Every deck and card is user-owned** — each user creates and manages their
+  own decks/cards in the app; there is **no shared catalog**. `Language`
+  (English/Russian) is reference data. Ownership is enforced server-side: you
+  only see and modify your own content.
 
 ### API conventions
 
@@ -78,11 +78,10 @@ algorithm (the `fsrs` package) to decide when each card is due.
 | POST   | `/api/v1/auth/token/refresh` | public | Refresh access token                 |
 | GET    | `/api/v1/auth/me`            | JWT    | Current user                         |
 | GET    | `/api/v1/languages`          | JWT    | Languages                            |
-| GET    | `/api/v1/decks`              | JWT    | Decks: shared + own (`?owner=me`, `?language=en`) |
-| GET    | `/api/v1/decks/tree`         | JWT    | Nested deck tree (shared + own)      |
-| POST/PATCH/DELETE | `/api/v1/decks[/{id}]` | JWT | Create/rename/delete your **own** decks |
-| GET    | `/api/v1/cards`              | JWT    | List cards in shared/own decks (`?deck=<id>`) |
-| POST/PATCH/DELETE | `/api/v1/cards[/{id}]` | JWT | CRUD cards in your **own** decks      |
+| GET    | `/api/v1/decks`              | JWT    | Your decks (`?language=en`)          |
+| POST/PATCH/DELETE | `/api/v1/decks[/{id}]` | JWT | Create/rename/delete your decks      |
+| GET    | `/api/v1/cards`              | JWT    | Cards in your decks (`?deck=<id>`)   |
+| POST/PATCH/DELETE | `/api/v1/cards[/{id}]` | JWT | CRUD cards in your decks             |
 | GET    | `/api/v1/study/queue`        | JWT    | Due + new cards (`?deck=&limit=`)    |
 | POST   | `/api/v1/study/grade`        | JWT    | Grade a card (`{card, rating 1-4}`)  |
 

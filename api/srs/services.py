@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone as dj_timezone
 from fsrs import Card, Rating, Scheduler
 
@@ -122,9 +121,9 @@ def get_study_queue(
 
     new_cards = []
     if new_take:
-        # Shared catalog cards + the user's own; never other users' personal cards.
+        # Only the user's own cards (no shared catalog).
         new_qs = (
-            CatalogCard.objects.filter(Q(deck__owner=None) | Q(deck__owner=user))
+            CatalogCard.objects.filter(deck__owner=user)
             .exclude(reviews__user=user)
             .order_by("deck", "order")
         )

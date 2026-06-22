@@ -53,12 +53,12 @@ docker-compose.yml · Makefile · .env.example
   not in views/serializers. Clients unwrap `data` (web axios interceptor; mobile
   `body['data']`). **Per the Documentation Sync Rule, any endpoint/field/contract
   change updates the clients AND the docs in the same change.**
-- **Deck ownership:** `Deck.owner` is NULL for the shared EN/RU catalog and set
-  for a user's personal decks; `Card` ownership derives from `deck.owner`.
-  `unique_together=(owner,parent,slug)`. Reads return shared+own; writes are
-  owner-only (DeckViewSet forces owner; `IsDeckOwnerOrReadOnly` /
+- **Deck ownership (no shared catalog):** every `Deck` has a required `owner`;
+  `Card` ownership derives from `deck.owner`. `Language` (EN/RU) is the only
+  shared reference data. `unique_together=(owner,parent,slug)`. Reads/writes are
+  owner-scoped (DeckViewSet forces owner; `IsDeckOwnerOrReadOnly` /
   `IsCardDeckOwnerOrReadOnly` + `CardSerializer.validate_deck` prevent IDOR).
-  The study queue never serves other users' personal cards.
+  The study queue serves only the user's own cards.
 - **Custom user logs in by email**, not username (`AUTH_USER_MODEL=accounts.User`,
   `USERNAME_FIELD="email"`, no `username` field). Telegram-only users get a
   synthetic `tg_<id>@telegram.local` email. Never add a migration that assumes a
