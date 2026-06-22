@@ -85,9 +85,10 @@ docker-compose.yml · Makefile · .env.example
     `shared/telegram.ts` (`getRawInitData()` via the SDK with a
     `window.Telegram.WebApp.initData` fallback; null in a plain browser → email
     login). An `app/ErrorBoundary` guards against blank-page render crashes.
-    Each feature has
-    `api.ts` (data) + a `use*` hook (logic) + a component (ui). Verify a build
-    with the node:22 image before claiming done.
+    Each feature has `api.ts` (data) + a `use*` hook (logic) + a component (ui).
+    UI is a **custom design system** (no UI library) — tokens + components in
+    `src/styles.css` (violet brand, light/dark, safe-area via `env()`). Verify a
+    build with the node:22 image before claiming done.
   - **Mobile** (`lib/`): transport in `features/shared/api_client.dart`, JWT only
     in `features/shared/token_storage.dart`. Each feature has `data/`,
     `controller/`, `ui/`. `flutter analyze` must be clean.

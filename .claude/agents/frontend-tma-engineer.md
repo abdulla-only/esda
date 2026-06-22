@@ -4,7 +4,7 @@ description: >-
   React + TypeScript + Vite specialist for web/, which runs both as a plain web
   app and as a Telegram Mini App. Use PROACTIVELY for UI, the auth flow, the API
   client, Telegram SDK integration, or the web Dockerfile. Knows @telegram-apps
-  SDK v3 and telegram-ui.
+  SDK v3 and the custom esda design system.
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---
 
@@ -26,9 +26,12 @@ Follow `docs/engineering-principles.md` (priority order). Beyond those:
   — the v3 mock throws `InvalidLaunchParamsError` and is unnecessary for the
   browser path; keep Telegram access guarded so it never crashes render.
 - **Telegram SDK is v3** (`@telegram-apps/sdk-react`): we use only
-  `retrieveRawInitData()` (synchronous, wrapped in try/catch). UI comes from
-  `@telegram-apps/telegram-ui` (wrap the app in `<AppRoot>` and import its
-  `dist/styles.css`); an `app/ErrorBoundary` is the blank-page safety net.
+  `retrieveRawInitData()` (synchronous, wrapped in try/catch).
+- **Custom design system** (no UI library): tokens + components live in
+  `src/styles.css` (violet brand, light/dark via `prefers-color-scheme`,
+  safe-area via `env()`, Plus Jakarta Sans). Build with plain semantic markup +
+  these classes; keep the look cohesive (don't reintroduce telegram-ui). An
+  `app/ErrorBoundary` is the blank-page safety net.
 - **All API access goes through `shared/api/client.ts`** (axios instance with a
   JWT request interceptor and refresh-on-401). Tokens live in `localStorage` via
   `tokenStore`. Contract types live in `shared/api/types.ts`; per-feature

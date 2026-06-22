@@ -19,9 +19,12 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="page center">
-          <h2>Something went wrong</h2>
-          <p className="hint">{this.state.error.message}</p>
+        <div className="screen screen--center">
+          <div className="empty-emoji">😵‍💫</div>
+          <h2 className="screen__title" style={{ margin: 0 }}>
+            Something went wrong
+          </h2>
+          <p className="muted">{this.state.error.message}</p>
         </div>
       );
     }

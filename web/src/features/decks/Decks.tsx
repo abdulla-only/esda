@@ -1,31 +1,31 @@
-import { Cell, List, Section, Spinner } from "@telegram-apps/telegram-ui";
-
 import type { Deck } from "../../shared/api/types";
 import { useDeckTree } from "./useDeckTree";
 
-function DeckRows({
-  decks,
-  depth,
+function DeckTile({
+  deck,
+  langCode,
   onStudy,
 }: {
-  decks: Deck[];
-  depth: number;
+  deck: Deck;
+  langCode: string;
   onStudy: (deckId: number) => void;
 }) {
   return (
     <>
-      {decks.map((deck) => (
-        <div key={deck.id}>
-          <Cell
-            style={{ paddingLeft: 16 + depth * 16 }}
-            subtitle={`${deck.card_count} cards`}
-            onClick={() => onStudy(deck.id)}
-          >
+      <button className="deck-tile" onClick={() => onStudy(deck.id)}>
+        <span className="deck-badge">{deck.name.slice(0, 2).toUpperCase()}</span>
+        <span className="deck-tile__main">
+          <span className="deck-tile__name">
             {deck.name}
-          </Cell>
-          {deck.children && deck.children.length > 0 && (
-            <DeckRows decks={deck.children} depth={depth + 1} onStudy={onStudy} />
-          )}
+            <span className="chip">{langCode.toUpperCase()}</span>
+          </span>
+          <span className="muted small">{deck.card_count} cards</span>
+        </span>
+        <span className="chevron">›</span>
+      </button>
+      {deck.children?.map((child) => (
+        <div key={child.id} style={{ marginLeft: 18 }}>
+          <DeckTile deck={child} langCode={langCode} onStudy={onStudy} />
         </div>
       ))}
     </>
@@ -33,23 +33,34 @@ function DeckRows({
 }
 
 export function Decks({ onStudy }: { onStudy: (deckId: number) => void }) {
-  const { decks, loading } = useDeckTree();
+  const { groups, loading } = useDeckTree();
 
   if (loading) {
     return (
-      <div className="page center">
-        <Spinner size="l" />
+      <div className="screen screen--center">
+        <div className="spinner" />
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <List>
-        <Section header="Decks" footer="Tap a deck to study it.">
-          <DeckRows decks={decks} depth={0} onStudy={onStudy} />
-        </Section>
-      </List>
+    <div className="screen">
+      <h1 className="screen__title">Decks</h1>
+      {groups.map((group) => (
+        <div className="deck-group" key={group.language.id}>
+          <h2 className="deck-group__title">{group.language.name}</h2>
+          <div className="deck-list">
+            {group.decks.map((deck) => (
+              <DeckTile
+                key={deck.id}
+                deck={deck}
+                langCode={group.language.code}
+                onStudy={onStudy}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -15,6 +15,12 @@ export interface TelegramAuthResponse extends TokenPair {
   user: User;
 }
 
+export interface Language {
+  id: number;
+  code: string;
+  name: string;
+}
+
 export interface Deck {
   id: number;
   language: number;

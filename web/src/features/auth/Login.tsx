@@ -1,5 +1,4 @@
 import { FormEvent, useState } from "react";
-import { Button, Input, Section, Title } from "@telegram-apps/telegram-ui";
 
 import { useAuth } from "./useAuth";
 
@@ -18,61 +17,99 @@ export function Login() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (isRegister) {
-        await registerWithEmail(email, password);
-      } else {
-        await loginWithEmail(email, password);
-      }
+      await (isRegister
+        ? registerWithEmail(email, password)
+        : loginWithEmail(email, password));
     } catch {
-      /* error surfaced via context */
+      /* surfaced via context */
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="page">
-      <Title level="1" weight="2" style={{ marginBottom: 16 }}>
-        {isRegister ? "Create your esda account" : "Sign in to esda"}
-      </Title>
-      <form onSubmit={onSubmit}>
-        <Section header={isRegister ? "Register" : "Email login"}>
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.currentTarget.value)}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.currentTarget.value)}
-          />
-        </Section>
-        {error && <p className="error">{error}</p>}
-        <Button type="submit" size="l" stretched disabled={busy}>
-          {busy
-            ? isRegister
-              ? "Creating…"
-              : "Signing in…"
-            : isRegister
-              ? "Create account"
-              : "Sign in"}
-        </Button>
-      </form>
-      <button
-        type="button"
-        className="link-btn"
-        onClick={() => setMode(isRegister ? "login" : "register")}
-      >
-        {isRegister
-          ? "Already have an account? Sign in"
-          : "New here? Create an account"}
-      </button>
-      <p className="hint">
-        Opened inside Telegram, esda signs you in automatically. In a browser,
-        use your email and password.
+    <div className="auth">
+      <div className="auth__hero">
+        <img
+          className="auth__wordmark"
+          src="/esda-wordmark.svg"
+          alt="esda.uz — So'zlar esda qoladi."
+          width={280}
+          height={88}
+        />
+      </div>
+
+      <div className="card">
+        <div className="segmented" role="tablist">
+          <button
+            type="button"
+            data-active={!isRegister}
+            onClick={() => setMode("login")}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            data-active={isRegister}
+            onClick={() => setMode("register")}
+          >
+            Register
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <label className="field">
+            <span className="field__label">Email</span>
+            <input
+              className="input"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">Password</span>
+            <input
+              className="input"
+              type="password"
+              autoComplete={isRegister ? "new-password" : "current-password"}
+              placeholder={isRegister ? "At least 8 characters" : "Your password"}
+              value={password}
+              onChange={(e) => setPassword(e.currentTarget.value)}
+            />
+          </label>
+
+          {error && <div className="alert">{error}</div>}
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            {busy
+              ? isRegister
+                ? "Creating account…"
+                : "Signing in…"
+              : isRegister
+                ? "Create account"
+                : "Sign in"}
+          </button>
+        </form>
+
+        <div className="switch-line">
+          <button
+            type="button"
+            className="link"
+            onClick={() => setMode(isRegister ? "login" : "register")}
+          >
+            {isRegister
+              ? "Already have an account? Sign in"
+              : "New to esda? Create an account"}
+          </button>
+        </div>
+      </div>
+
+      <p className="auth__note">
+        Inside Telegram you’re signed in automatically. In a browser, use your
+        email and password.
       </p>
     </div>
   );
