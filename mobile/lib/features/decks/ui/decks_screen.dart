@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/api_client.dart';
+import '../../shared/theme.dart';
 import '../../shared/ui/feedback.dart';
+import '../../shared/ui/glass.dart';
 import '../controller/decks_controller.dart';
 import '../data/deck.dart';
 import '../data/deck_api.dart';
@@ -148,23 +150,51 @@ class _DecksScreenState extends State<DecksScreen> {
         ),
       );
     }
+    final t = AuroraTokens.of(context);
     return RefreshIndicator(
       onRefresh: _controller.load,
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 88),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
         itemCount: _controller.decks.length,
         itemBuilder: (context, i) {
           final deck = _controller.decks[i];
-          return ListTile(
-            title: Text(deck.name),
-            subtitle: Text('${deck.cardCount} card(s)'),
-            onTap: () => _openCards(deck),
-            trailing: PopupMenuButton<String>(
-              onSelected: (v) => v == 'rename' ? _rename(deck) : _delete(deck),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'rename', child: Text('Rename')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GlassCard(
+              onTap: () => _openCards(deck),
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          deck.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: t.text,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${deck.cardCount} card(s)',
+                          style: TextStyle(color: t.muted, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (v) =>
+                        v == 'rename' ? _rename(deck) : _delete(deck),
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(value: 'rename', child: Text('Rename')),
+                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },

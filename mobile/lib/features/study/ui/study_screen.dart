@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/api_client.dart';
+import '../../shared/theme.dart';
+import '../../shared/ui/glass.dart';
 import '../controller/study_controller.dart';
 import '../data/study_api.dart';
 
-const _grades = [
-  (rating: 1, label: 'Again', color: Color(0xFFE64646)),
-  (rating: 2, label: 'Hard', color: Color(0xFFE6A046)),
-  (rating: 3, label: 'Good', color: Color(0xFF3AAF5C)),
-  (rating: 4, label: 'Easy', color: Color(0xFF4F46E5)),
+typedef _Grade = ({int rating, String label, Color Function(AuroraTokens) hue});
+
+const _grades = <_Grade>[
+  (rating: 1, label: 'Again', hue: _again),
+  (rating: 2, label: 'Hard', hue: _hard),
+  (rating: 3, label: 'Good', hue: _good),
+  (rating: 4, label: 'Easy', hue: _easy),
 ];
+
+Color _again(AuroraTokens t) => t.again;
+Color _hard(AuroraTokens t) => t.hard;
+Color _good(AuroraTokens t) => t.good;
+Color _easy(AuroraTokens t) => t.easy;
 
 /// Reusable study session. When [deckId] is set, only that deck is studied and a
 /// banner is shown. When [embedded] is true it renders body-only (no Scaffold),
@@ -69,6 +78,7 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Widget _body() {
+    final t = AuroraTokens.of(context);
     if (_controller.loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -93,21 +103,31 @@ class _StudyScreenState extends State<StudyScreen> {
     final card = _controller.current;
     if (card == null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('All caught up!', style: TextStyle(fontSize: 20)),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _controller.load(deck: widget.deckId),
-              child: const Text('Refresh'),
-            ),
-          ],
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+          glow: t.brand,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'All caught up!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: t.text,
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => _controller.load(deck: widget.deckId),
+                child: const Text('Refresh'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    final accent = Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -115,55 +135,65 @@ class _StudyScreenState extends State<StudyScreen> {
           Text(
             '${_controller.index + 1} / ${_controller.queue.length}'
             '${card.isNew ? ' · new' : ''}',
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(color: t.muted, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: GestureDetector(
+            child: GlassCard(
+              glow: t.brand,
               onTap: _controller.reveal,
-              child: Card(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        card.front,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: t.text,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (_controller.revealed) ...[
+                        Divider(height: 32, color: t.glassBorder),
                         Text(
-                          card.front,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
+                          card.back,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: t.brandText,
+                            shadows: [
+                              Shadow(
+                                color: t.brand.withValues(alpha: 0.6),
+                                blurRadius: 18,
+                              ),
+                            ],
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        if (_controller.revealed) ...[
-                          const Divider(height: 32),
+                        if (card.example.isNotEmpty) ...[
+                          const SizedBox(height: 12),
                           Text(
-                            card.back,
-                            style: TextStyle(fontSize: 24, color: accent),
+                            '“${card.example}”',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: t.muted,
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                          if (card.example.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              '“${card.example}”',
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ] else
-                          const Padding(
-                            padding: EdgeInsets.only(top: 16),
-                            child: Text(
-                              'tap to reveal',
-                              style: TextStyle(color: Colors.grey),
-                            ),
+                        ],
+                      ] else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            'tap to reveal',
+                            style: TextStyle(color: t.muted),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -173,16 +203,17 @@ class _StudyScreenState extends State<StudyScreen> {
           if (_controller.revealed)
             Row(
               children: [
-                for (final g in _grades)
+                for (var i = 0; i < _grades.length; i++)
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(backgroundColor: g.color),
+                      child: _GradePill(
+                        number: i + 1,
+                        label: _grades[i].label,
+                        hue: _grades[i].hue(t),
                         onPressed: _controller.grading
                             ? null
-                            : () => _controller.grade(g.rating),
-                        child: Text(g.label),
+                            : () => _controller.grade(_grades[i].rating),
                       ),
                     ),
                   ),
@@ -202,6 +233,90 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 }
 
+/// A grade choice as a frosted pill tinted by its hue, with a colored glow and a
+/// small number chip echoing the desktop keyboard shortcuts.
+class _GradePill extends StatelessWidget {
+  const _GradePill({
+    required this.number,
+    required this.label,
+    required this.hue,
+    required this.onPressed,
+  });
+
+  final int number;
+  final String label;
+  final Color hue;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    final radius = BorderRadius.circular(16);
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: hue.withValues(alpha: 0.35),
+                    blurRadius: 22,
+                    spreadRadius: -4,
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: hue.withValues(alpha: 0.16),
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onPressed,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(color: hue.withValues(alpha: 0.7)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: hue.withValues(alpha: 0.22),
+                    ),
+                    child: Text(
+                      '$number',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: hue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: hue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _DeckBanner extends StatelessWidget {
   const _DeckBanner({required this.name});
 
@@ -209,19 +324,20 @@ class _DeckBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: scheme.secondaryContainer,
-      child: Padding(
+    final t = AuroraTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: GlassContainer(
+        borderRadius: 16,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            const Icon(Icons.style, size: 18),
+            Icon(Icons.style, size: 18, color: t.brand),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Studying $name',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600, color: t.text),
               ),
             ),
             TextButton(

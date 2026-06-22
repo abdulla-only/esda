@@ -4,6 +4,7 @@ import 'features/auth/ui/login_screen.dart';
 import 'features/home/ui/home_screen.dart';
 import 'features/shared/api_client.dart';
 import 'features/shared/theme.dart';
+import 'features/shared/ui/aurora_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ class EsdaApp extends StatelessWidget {
         theme: esdaLightTheme,
         darkTheme: esdaDarkTheme,
         themeMode: theme.mode,
+        builder: (context, child) => AuroraBackground(child: child!),
         home: _Root(client: client, theme: theme),
       ),
     );

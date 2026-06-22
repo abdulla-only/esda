@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/api_client.dart';
+import '../../shared/theme.dart';
 import '../../shared/ui/feedback.dart';
+import '../../shared/ui/glass.dart';
 import '../../study/ui/study_screen.dart';
 import '../controller/deck_cards_controller.dart';
 import '../data/card.dart';
@@ -160,23 +162,62 @@ class _DeckCardsScreenState extends State<DeckCardsScreen> {
         ),
       );
     }
+    final t = AuroraTokens.of(context);
     return RefreshIndicator(
       onRefresh: _controller.load,
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 88),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
         itemCount: _controller.cards.length,
         itemBuilder: (context, i) {
           final card = _controller.cards[i];
-          return ListTile(
-            title: Text('${card.front}  →  ${card.back}'),
-            subtitle: Text(card.partOfSpeech),
-            onTap: () => _edit(card),
-            trailing: PopupMenuButton<String>(
-              onSelected: (v) => v == 'edit' ? _edit(card) : _delete(card),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GlassCard(
+              onTap: () => _edit(card),
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: card.front),
+                              TextSpan(
+                                text: '  →  ',
+                                style: TextStyle(color: t.muted),
+                              ),
+                              TextSpan(
+                                text: card.back,
+                                style: TextStyle(color: t.brandText),
+                              ),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: t.text,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          card.partOfSpeech,
+                          style: TextStyle(color: t.muted, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (v) => v == 'edit' ? _edit(card) : _delete(card),
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Edit')),
+                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },

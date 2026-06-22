@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../auth/controller/auth_controller.dart';
@@ -56,9 +58,18 @@ class _HomeScreenState extends State<HomeScreen> {
       StudyScreen(client: widget.client, embedded: true),
       DecksScreen(client: widget.client),
     ];
+    final t = AuroraTokens.of(context);
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
         title: Text(_tab == 0 ? 'Study' : 'Decks'),
+        // Subtle frosted strip so content scrolls under the bar over the aurora.
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: const SizedBox.expand(),
+          ),
+        ),
         actions: [
           ThemeToggle(controller: widget.theme),
           IconButton(
@@ -69,13 +80,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: IndexedStack(index: _tab, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.school), label: 'Study'),
-          NavigationDestination(icon: Icon(Icons.style), label: 'Decks'),
-        ],
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: t.glassFill,
+              border: Border(top: BorderSide(color: t.glassBorder)),
+            ),
+            child: NavigationBar(
+              selectedIndex: _tab,
+              onDestinationSelected: (i) => setState(() => _tab = i),
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.school), label: 'Study'),
+                NavigationDestination(icon: Icon(Icons.style), label: 'Decks'),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
