@@ -22,10 +22,10 @@ lib/
 
 ```bash
 flutter pub get
-# Android emulator (default API_URL is http://10.0.2.2:8000 = host localhost):
+# Android emulator (default API_URL is http://10.0.2.2:8001 = host localhost):
 flutter run
 # iOS simulator or a custom host:
-flutter run --dart-define=API_URL=http://localhost:8000
+flutter run --dart-define=API_URL=http://localhost:8001
 ```
 
 Sign in with a backend user (e.g. one created via `make superuser`). Full

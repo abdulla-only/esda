@@ -11,7 +11,7 @@ description: >-
 
 Confirms the core API contract end-to-end. Requires the stack to be up
 (`make dev` — see the `dev-stack` skill) and the api reachable on
-`http://localhost:8000`.
+`http://localhost:8001`.
 
 ## Run it
 

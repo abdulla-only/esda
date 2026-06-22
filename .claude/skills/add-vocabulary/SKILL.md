@@ -21,7 +21,7 @@ Sign in, open the **Decks** tab → create a deck (name + language) → open it 
 All under `/api/v1`, JWT required; responses use the `{success,data}` envelope.
 
 ```bash
-API=http://localhost:8000/api/v1
+API=http://localhost:8001/api/v1
 TOK=...   # from POST /auth/token
 H="Authorization: Bearer $TOK"
 LANG=$(curl -fsS "$API/languages" -H "$H" | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['results'][0]['id'])")

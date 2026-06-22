@@ -5,7 +5,7 @@
 # All responses use the envelope {success, data} / {success, error}.
 set -euo pipefail
 
-API="${API_URL:-http://localhost:8000}/api/v1"
+API="${API_URL:-http://localhost:8001}/api/v1"
 DC="docker compose --env-file .env.development"
 EMAIL="demo@esda.app"
 PASS="demopass123"

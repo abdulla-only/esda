@@ -60,10 +60,10 @@ install:
 # Local (host) run targets — use .env.local
 # ---------------------------------------------------------------------------
 api-local:
-	cd api && $(LOAD_LOCAL); ./.venv/bin/python manage.py migrate && ./.venv/bin/python manage.py runserver 0.0.0.0:8000
+	cd api && $(LOAD_LOCAL); ./.venv/bin/python manage.py migrate && ./.venv/bin/python manage.py runserver 0.0.0.0:8001
 
 web-local:
-	cd web && $(LOAD_LOCAL); npm run dev
+	cd web && $(LOAD_LOCAL); npm run dev -- --port 5174
 
 bot-local:
 	cd bot && $(LOAD_LOCAL); ./.venv/bin/python main.py

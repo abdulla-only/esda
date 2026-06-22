@@ -22,8 +22,9 @@ Follow `docs/engineering-principles.md` (priority order). Beyond those:
 - **All HTTP goes through `features/shared/api_client.dart`** (package `http`),
   which attaches the JWT, refreshes once on a 401, and unwraps the envelope. The
   API base is `Config.apiUrl` (`lib/config.dart`), overridable with
-  `--dart-define=API_URL=...`. Default `http://10.0.2.2:8000` is the Android
-  emulator's alias for host localhost (use `http://localhost:8000` on iOS sim).
+  `--dart-define=API_URL=...`. Default `http://10.0.2.2:8001` is the Android
+  emulator's alias for host localhost (use `http://localhost:8001` on iOS sim);
+  the host API is published on 8001.
 - **JWT only in `flutter_secure_storage`** (`features/shared/token_storage.dart`)
   — never in shared prefs or plain files.
 - **API is versioned `/api/v1`, no trailing slashes**; every response is

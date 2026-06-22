@@ -17,7 +17,7 @@ Always pass the env file so variable substitution matches the Makefile:
 
 ```bash
 make dev-build      # build images (api, web, bot)
-make dev            # up: db, redis, api(:8000), web(:5173), bot
+make dev            # up: db, redis, api(:8001), web(:5174), bot
 # detached + verify instead of foreground:
 docker compose --env-file .env.development up -d
 ```
@@ -28,17 +28,19 @@ seeds sample data on startup.
 ## Verify
 
 ```bash
-curl -fsS http://localhost:8000/api/v1/health       # -> {"success":true,"data":{"status":"ok","database":true}}
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5173/   # web -> 200
+curl -fsS http://localhost:8001/api/v1/health       # -> {"success":true,"data":{"status":"ok","database":true}}
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5174/   # web -> 200
 docker compose --env-file .env.development ps --format 'table {{.Service}}\t{{.Status}}'
 docker compose --env-file .env.development logs bot | tail   # bot idles without a real token
 ```
 
 ## Common issues (and fixes)
 
-- **`address already in use` on 5432** — the dockerized DB publishes on host
-  **5433** on purpose (a local Postgres likely owns 5432). If 5433 also clashes,
-  change `POSTGRES_PORT` in `.env.development`.
+- **`port is already allocated` / `address already in use`** — host ports are
+  offset to avoid clashing with other projects: api **8001**, web **5174**,
+  Postgres **5433**, Redis **6380** (compose-internal ports are unchanged). If a
+  chosen host port still clashes, change `API_PORT`/`WEB_PORT`/`POSTGRES_PORT`/
+  `REDIS_PORT` in `.env.development`.
 - **`/app/entrypoint.sh: permission denied`** — the bind mount shadows the
   image's chmod. Fix on the host: `chmod +x api/entrypoint.sh`.
 - **bot crash-looping** — only happens if it's been changed to exit without a

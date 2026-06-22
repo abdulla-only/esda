@@ -28,7 +28,7 @@ docker-compose.yml · Makefile · .env.example
 ## Running it
 
 - **Docker (all services):** `make dev` (loads `.env.development`). Brings up
-  db, redis, api(:8000), web(:5173), bot. api auto-migrates and (when
+  db, redis, api(:8001), web(:5174), bot. api auto-migrates and (when
   `AUTO_SEED=1`) seeds on startup.
 - **Host (one service on the machine, db in Docker):** `make install` once, then
   `make api-local` / `make web-local` / `make bot-local` / `make mobile-local`
@@ -41,8 +41,12 @@ docker-compose.yml · Makefile · .env.example
 
 ## Gotchas (learned the hard way)
 
-- **Postgres is published on host port `5433`, not 5432** — to avoid clashing
-  with a local Postgres. Inside the compose network it's still `5432`.
+- **Host ports are offset to avoid clashing with other local projects:** api
+  **8001**, web **5174**, Postgres **5433**, Redis **6380**. Inside the compose
+  network the standard ports (8000/5173/5432/6379) are unchanged — only the
+  published host ports differ (set via `API_PORT`/`WEB_PORT`/`POSTGRES_PORT`/
+  `REDIS_PORT`). The browser/mobile must hit the host ports (`VITE_API_URL`,
+  mobile `Config.apiUrl` → :8001).
 - **API is versioned `/api/v1` with NO trailing slashes.** The DRF router uses
   `DefaultRouter(trailing_slash=False)`. Keep new endpoints slash-less.
 - **One response envelope** (`config.renderers.EnvelopeJSONRenderer`):

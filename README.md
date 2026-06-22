@@ -136,15 +136,18 @@ to use Telegram features). The two files differ mainly in `DATABASE_URL`:
 | `.env.development` | docker (`dev`) | `db:5432` (compose network) |
 | `.env.local`       | host (`local`) | `localhost:5433` (published)|
 
-> The dockerized Postgres is published on host port **5433** to avoid clashing
-> with a Postgres you may already run on 5432.
+> **Host ports are offset to avoid clashing with other local projects:**
+> api **8001**, web **5174**, Postgres **5433**, Redis **6380** (inside the
+> compose network the standard ports — 8000/5173/5432/6379 — are unchanged).
+> Override any of them via `API_PORT` / `WEB_PORT` / `POSTGRES_PORT` /
+> `REDIS_PORT` in your env file.
 
 ### Option A — Docker (everything in containers)
 
 ```bash
 make dev          # build + start db, redis, api, bot, web
-# api  → http://localhost:8000   (/api/v1/health, /admin)
-# web  → http://localhost:5173
+# api  → http://localhost:8001   (/api/v1/health, /admin)
+# web  → http://localhost:5174
 ```
 
 The `api` container waits for Postgres, **auto-runs migrations**, and (when
@@ -164,8 +167,8 @@ make install      # api venv + deps, web npm install, bot venv + deps
 make migrate      # apply migrations
 make seed         # sample languages/decks/cards
 
-make api-local    # Django runserver on http://localhost:8000
-make web-local    # Vite dev server on http://localhost:5173
+make api-local    # Django runserver on http://localhost:8001
+make web-local    # Vite dev server on http://localhost:5174
 make bot-local    # aiogram bot
 make mobile-local # flutter run
 ```
@@ -213,7 +216,7 @@ DB & utils (run in the api container against the compose db):
 ## Telegram Mini App notes
 
 Telegram only loads Mini Apps over **HTTPS**. For local testing, expose the web
-dev server with a tunnel (e.g. `ngrok http 5173`) and set that URL as the Mini
+dev server with a tunnel (e.g. `ngrok http 5174`) and set that URL as the Mini
 App URL in BotFather and as `MINI_APP_URL`. In a plain browser the web app mocks
 the Telegram environment so you can develop without Telegram.
 
