@@ -35,25 +35,25 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --brand: #4f46e5;
-    --brand-2: #6366f1;
-    --brand-text: #a5b4fc; /* lighter indigo for legible text on dark */
-    --brand-soft: rgba(99, 102, 241, 0.2);
-    --accent: #ff8a78;
-    --accent-soft: rgba(255, 138, 120, 0.18);
+/* Dark tokens — applied when JS resolves the theme to dark (system or manual).
+   main.tsx sets <html data-theme="light|dark"> before paint. */
+:root[data-theme="dark"] {
+  --brand: #4f46e5;
+  --brand-2: #6366f1;
+  --brand-text: #a5b4fc; /* lighter indigo for legible text on dark */
+  --brand-soft: rgba(99, 102, 241, 0.2);
+  --accent: #ff8a78;
+  --accent-soft: rgba(255, 138, 120, 0.18);
 
-    --bg: #0e0f16;
-    --surface: #181a25;
-    --surface-2: #21232f;
-    --text: #f2f3fb;
-    --muted: #9a9cb6;
-    --border: rgba(255, 255, 255, 0.09);
+  --bg: #0e0f16;
+  --surface: #181a25;
+  --surface-2: #21232f;
+  --text: #f2f3fb;
+  --muted: #9a9cb6;
+  --border: rgba(255, 255, 255, 0.09);
 
-    --shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.4);
-  }
+  --shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -228,6 +228,52 @@ button {
 .icon-btn--accent {
   background: var(--brand-soft);
   color: var(--brand-text);
+}
+
+/* Theme toggle (light / dark / system). */
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+.theme-toggle__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.theme-toggle__btn:hover {
+  color: var(--text);
+}
+.theme-toggle__btn.active {
+  background: var(--surface);
+  color: var(--brand-text);
+  box-shadow: var(--shadow-sm);
+}
+.sidebar__theme {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+.auth__theme {
+  position: fixed;
+  top: calc(12px + var(--safe-top));
+  right: 14px;
+  z-index: 5;
 }
 
 /* Study scope banner (when studying a single deck). */

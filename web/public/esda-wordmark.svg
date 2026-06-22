@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" width="640" height="200">
-  <rect x="40" y="34" width="132" height="132" rx="30" fill="#4F46E5"/>
-  <rect x="68" y="66" width="76" height="14" rx="7" fill="#FF7A66"/>
-  <rect x="68" y="93" width="55" height="14" rx="7" fill="#FFFFFF"/>
-  <rect x="68" y="121" width="76" height="14" rx="7" fill="#FFFFFF"/>
-  <text x="200" y="120" font-family="'Manrope','Segoe UI',sans-serif" font-size="84" font-weight="600" fill="#4F46E5">esda<tspan fill="#9CA3AF">.uz</tspan></text>
-  <text x="202" y="156" font-family="'Manrope','Segoe UI',sans-serif" font-size="19" font-weight="500" fill="#6B7280">So'zlar esda qoladi.</text>
-</svg>

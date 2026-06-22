@@ -4,6 +4,7 @@ import { useAuth } from "../features/auth/useAuth";
 import { Login } from "../features/auth/Login";
 import { MyDecks } from "../features/mydecks/MyDecks";
 import { StudyScreen } from "../features/study/StudyScreen";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Tab = "study" | "decks";
 
@@ -50,6 +51,9 @@ export function App() {
             Decks
           </button>
         </nav>
+        <div className="sidebar__theme">
+          <ThemeToggle />
+        </div>
         <button className="navitem navitem--muted" onClick={logout}>
           <LogoutGlyph />
           Sign out
@@ -64,9 +68,12 @@ export function App() {
             es<span className="brand__dot">da</span>
           </span>
         </span>
-        <button className="icon-btn" onClick={logout} aria-label="Sign out">
-          <LogoutGlyph />
-        </button>
+        <div className="topbar__actions">
+          <ThemeToggle />
+          <button className="icon-btn" onClick={logout} aria-label="Sign out">
+            <LogoutGlyph />
+          </button>
+        </div>
       </header>
 
       <main className="content">

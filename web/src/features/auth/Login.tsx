@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 
+import { ThemeToggle } from "../../app/ThemeToggle";
 import { useAuth } from "./useAuth";
 
 type Mode = "login" | "register";
@@ -29,6 +30,9 @@ export function Login() {
 
   return (
     <div className="auth">
+      <div className="auth__theme">
+        <ThemeToggle />
+      </div>
       <div className="auth__hero">
         <img
           className="auth__wordmark"
