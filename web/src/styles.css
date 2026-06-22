@@ -917,14 +917,17 @@ button {
   .auth {
     max-width: 420px;
   }
-  /* Study: a right-sized card, vertically centered in the canvas. */
+  /* Study: a compact card, centered in the canvas. */
   .study {
-    max-width: 540px;
+    max-width: 440px;
     margin-block: auto;
     padding-top: 0;
   }
   .flashcard__inner {
-    height: 300px;
+    height: 260px;
+  }
+  .study .term {
+    font-size: 30px;
   }
   /* Decks fill the wider canvas as a responsive grid. */
   .deck-list {
